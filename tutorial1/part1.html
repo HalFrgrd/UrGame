@@ -1,0 +1,51 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 1</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var config = {
+    type: Phaser.WEBGL,
+    width: 800,
+    height: 600,
+    backgroundColor: '#2d2d2d',
+    parent: 'phaser-example',
+    scene: {
+        preload: preload,
+        create: create
+    }
+};
+
+var game = new Phaser.Game(config);
+
+function preload ()
+{
+    this.load.image('block', 'assets/sprites/block.png');
+}
+
+function create ()
+{
+    var image = this.add.image(100, 300, 'block');
+
+    this.tweens.add({
+        targets: image,
+        x: 700,
+        duration: 3000,
+        ease: 'Power2',
+        completeDelay: 3000
+    });
+}
+</script>
+
+</body>
+</html>
