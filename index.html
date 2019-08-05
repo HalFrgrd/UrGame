@@ -88,13 +88,6 @@
         new Phaser.Geom.Line(gridWidth*5.5, gridWidth*2.5, gridWidth/2.5),
       ]
 
-      var image = this.add.image(100, 300, 'block');
-
-      
-      
-
-
-
       graphics = this.add.graphics({ lineStyle: { width: 2, color: 0xaa6622 } });
 
       graphics.strokePoints(boardPolygon1.points, true);
@@ -188,28 +181,39 @@
                       piecesInPos[16].push(removedPiece);
                       var newCoords = starCoords[yetToStartBlacks];
                       yetToStartBlacks++;
-                      removedPiece.x = newCoords[0] + 4*gridWidth;
-                      removedPiece.y = newCoords[1] + 1*gridWidth;
+                      newCoords[0] += 4*gridWidth;
+                      newCoords[1] += 1*gridWidth;
                       break
                     }
                     case "white_token": {
                       piecesInPos[0].push(removedPiece);
                       var newCoords = starCoords[yetToStartWhites];
                       yetToStartWhites++;
-                      removedPiece.x = newCoords[0] + 4*gridWidth;
-                      removedPiece.y = newCoords[1] + 3*gridWidth;
+                      newCoords[0] += 4*gridWidth;
+                      newCoords[1] += 3*gridWidth;
                       break
                     }
                   }
+                  _this.tweens.add({
+                  targets: removedPiece,
+                      x: newCoords[0],
+                      y: newCoords[1],
+                      scaleX: 0.05,
+                      scaleY: 0.05,
+                      duration: 200,
+                      ease: 'Linear',
+                  });
 
                 } 
                 newCoordinates = boardPosToXY(newPos);
               }
-
+              
               _this.tweens.add({
                   targets: piecesInPos[newPos][piecesInPos[newPos].length-1],
                   x: newCoordinates[0],
                   y: newCoordinates[1],
+                  scaleX: 0.2,
+                  scaleY: 0.2,
                   duration: 200,
                   ease: 'Linear',
               });
