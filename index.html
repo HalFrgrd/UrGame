@@ -7,6 +7,7 @@
     <style type="text/css">
         body {
             margin: 0;
+            background-color: #FAF8EF; 
         }
     </style>
 </head>
@@ -16,9 +17,13 @@
 
     var config = {
         type: Phaser.AUTO,
-        width: 800,
-        height: 600,
+        width: 600,
+        height: 400,
         backgroundColor: '#FAF8EF',
+        scale: {
+          // mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH
+        },
         scene: {
             preload: preload,
             create: create,
@@ -42,7 +47,7 @@
     var finishedBlacks = 0;
     var yetToStartWhites = 7;
     var yetToStartBlacks = 7;
-    const gridWidth = 48;
+    const gridWidth = 60;
     var diceRoll = 1;
     var diceText;
     var dice;
@@ -56,15 +61,18 @@
 
     function preload ()
     {
-       this.load.image('black_token', 'assets/black_token.png');
-       this.load.image('white_token', 'assets/white_token.png');
-       this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
-       this.load.image('rosette','assets/rosette.png');
+      this.load.image('black_token', 'assets/black_token.png');
+      this.load.image('white_token', 'assets/white_token.png');
+      this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
+      this.load.image('rosette','assets/rosette.png');
+
+      
 
     }
 
     function create ()
     {
+
 
       var circle = new Phaser.Geom.Circle(400,300,100);
 
@@ -89,7 +97,7 @@
       graphics.fillStyle( 0xCDC0B4, 1);
       graphics.fillRoundedRect(gridWidth*1, gridWidth*1, gridWidth*2, gridWidth*3, 8);
       graphics.fillRoundedRect(gridWidth*5, gridWidth*1, gridWidth*4, gridWidth*3, 8);
-      graphics.fillRect(144,96,96,48);
+      graphics.fillRect(gridWidth*3,gridWidth*2,gridWidth*2,gridWidth);
       graphics.fillStyle(0xBBADA0);
 
       graphics.strokeRoundedRect(gridWidth*1, gridWidth*1, gridWidth*2, gridWidth*3, 8);
@@ -102,36 +110,42 @@
       }
       // graphics.strokeCircle(gridWidth*2.5, gridWidth*1.5, gridWidth/2.5)
 
-      this.add.image(72+48,72,'rosette').setScale(0.2);
-      this.add.image(72+48,72+96,'rosette').setScale(0.2);
-      this.add.image(48*5.5,48*2.5,'rosette').setScale(0.2);
-      this.add.image(48*8.5,72+96,'rosette').setScale(0.2);
-      this.add.image(48*8.5,72,'rosette').setScale(0.2);
+      this.add.image(gridWidth*2.5,gridWidth*1.5,'rosette').setScale(0.2);
+      this.add.image(gridWidth*2.5,gridWidth*3.5,'rosette').setScale(0.2);
+      this.add.image(gridWidth*5.5,gridWidth*2.5,'rosette').setScale(0.2);
+      this.add.image(gridWidth*8.5,gridWidth*3.5,'rosette').setScale(0.2);
+      this.add.image(gridWidth*8.5,gridWidth*1.5,'rosette').setScale(0.2);
 
       //initialising dice
       dice = this.add.group();
-      dice.create(gridWidth/2,gridWidth*1/2,'dice').setScale(0.4);
-      dice.create(gridWidth/2,gridWidth*3/2,'dice').setScale(0.4);
-      dice.create(gridWidth/2,gridWidth*5/2,'dice').setScale(0.4);
-      dice.create(gridWidth/2,gridWidth*7/2,'dice').setScale(0.4);
+      // dice.create(gridWidth/2,gridWidth*1/2,'dice').setScale(0.4);
+      // dice.create(gridWidth/2,gridWidth*3/2,'dice').setScale(0.4);
+      // dice.create(gridWidth/2,gridWidth*5/2,'dice').setScale(0.4);
+      // dice.create(gridWidth/2,gridWidth*7/2,'dice').setScale(0.4);
       diceText = this.add.text(12,gridWidth*4 ,diceRoll, { fontSize: '32px', fill: '#000' });
 
-      dicePath = new Phaser.Curves.Path(24,24);
-      dicePath.lineTo(24,48*4.5);
-      var dice1 = this.add.follower(dicePath, 0, 0,'dice').setScale(0.4);
+      // dicePath1 = new Phaser.Curves.Path(24+48,24);
+      // dicePath1.quadraticBezierTo(48*0.5,48*1.5,48*0.5,48*0.5,);
+      // dicePath1.lineTo(24,48*2.5);
+      // dice.add( this.add.follower(dicePath1, 0, 0,'dice').setScale(0.4));
+      // // dicePath1.draw(graphics);
 
-      dice1.startFollow({
-        positionOnPath: true,
-        duration: 400,
-        yoyo: true,
-        repeat: -1,
-        rotateToPath: true,
-        verticalAdjust: false
-    });
+      // dicePath2 = new Phaser.Curves.Path(24,24);
+      // dicePath2.lineTo(24,48*3.5);
+      // dice.add( this.add.follower(dicePath2, 0, 0,'dice').setScale(0.4));
 
+      // dicePath3 = new Phaser.Curves.Path(24,24+48);
+      // dicePath3.lineTo(24,48*4.5);
+      // dice.add( this.add.follower(dicePath3, 0, 0,'dice').setScale(0.4));
+
+      // dicePath4 = new Phaser.Curves.Path(24,24+48*2);
+      // dicePath4.lineTo(24,48*3.5)
+      // dicePath4.quadraticBezierTo(48*1.5,48*4.5,48*0.5,48*4.5,);
+      // dice.add( this.add.follower(dicePath4, 0, 0,'dice').setScale(0.4));
+      // dicePath4.draw(graphics);
 
       //initialising text
-      turnText = this.add.text(48, 300, `turn: ${turnPiece}`, { fontSize: '32px', fill: '#000' });
+      turnText = this.add.text(gridWidth, 300, `turn: ${turnPiece}`, { fontSize: '32px', fill: '#000' });
 
       //initialising pieces
       whitePieces = this.add.group();
@@ -158,7 +172,6 @@
         key: 'roll',
         frames: this.anims.generateFrameNumbers('dice'),
         frameRate: 20,
-        
         duration: 200,
       })
 
@@ -173,22 +186,18 @@
         workOutMove(pointer, true);    
       });
 
-      console.log("running once");
       hoveringOnPiece = -1
       this.input.on('pointermove', function (pointer){
         var newHoveringOnPiece = mouseXYtoBoardPos(pointer.x,pointer.y);
         if(newHoveringOnPiece != hoveringOnPiece){ //only do this when pointer moves onto a new area of the board (new square, or off board)
-          console.log("removing")
+          // console.log("removing")
           ghostPieceWhite.setAlpha(0);
           ghostPieceBlack.setAlpha(0);
           hoveringOnPiece = newHoveringOnPiece
 
-          console.log("updating now")
+          // console.log("updating now")
           workOutMove(pointer, false)
-
         }
-
-
       })
 
       function workOutMove(pointer, takeAction) {
@@ -249,11 +258,7 @@
               
               //Change the turn
               if( ![4,8,14,22,20].includes(newPos)){
-                switch (turnPiece) {
-                  case "white_token": {turnPiece = "black_token"; break}
-                  case "black_token": {turnPiece = "white_token"; break}
-                }
-                turnText.setText("turn: " + turnPiece)
+                switchTurn();
               }
             } else {
               console.log("adding ghost piece")
@@ -333,25 +338,49 @@
 
     function rollDice(_this) {
       const diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
-      diceRoll = diceValues.reduce((a,b) => a+b,0); //SHOULD BE ,0
+      diceRoll = diceValues.reduce((a,b) => a+b,0);
       var i = 0;
       dice.getChildren().forEach(diceSprite => {
-        diceSprite.anims.play('roll');
+        // diceSprite.anims.play('roll');
+        _this.tweens.add({
+          targets: diceSprite,
+            rotation: 5,
+            duration: 200,
+            ease: 'Linear',
+        });
       });
 
-      diceRoll = Phaser.Math.Between(0,2);
+      // diceRoll = Phaser.Math.Between(0,2);
 
       diceText.setText(diceRoll);
 
       if(diceRoll == 0){
         console.log("ROLLED A ZERO")
-        _this.time.addEvent({
-          delay: 500,                // ms
-          duration: 500,
-          onComplete: rollDice(_this),
-          loop: false
-        });
+        _this.time.delayedCall(1000, function() {
+          console.log("RE ROLLING");
+          switchTurn();
+          rollDice(_this)
+        }, [], _this);
       }
+    }
+
+    function switchTurn() {
+      switch (turnPiece) {
+        case "white_token": {turnPiece = "black_token"; break}
+        case "black_token": {turnPiece = "white_token"; break}
+      }
+      // dice.getChildren().forEach( d => d.startFollow({
+      //   positionOnPath: true,
+      //   duration: 1000,
+      //   yoyo: false,
+      //   repeat: -1,
+      //   onComplete: function() {console.log("finished")},
+      //   rotateToPath: true,
+      //   verticalAdjust: true,
+      // })
+      //)
+
+      turnText.setText("turn: " + turnPiece)
     }
 
     function possibleMove(bPos, diceRoll, colorOfToken) {
@@ -364,7 +393,7 @@
       // console.log(`number of pieces in poss pos: ${piecesInPos[newPossPos].length }`)
       if (piecesInPos[newPossPos].length==0 || newPossPos == 15 || newPossPos == 23 || (piecesInPos[newPossPos][0].texture.key != colorOfToken && newPossPos != 8)) { // if we have found a new possible position
         return [newPossPos];
-        
+       
       }
       return []
     }
@@ -403,6 +432,7 @@
 
     function update ()
     {
+      //dice.getChildren().forEach( d => console.log("t value is:", d.t))
     }
 
 </script>
