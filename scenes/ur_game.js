@@ -1,4 +1,7 @@
 
+
+
+
 var config = {
     type: Phaser.AUTO,
     parent: 'game', //reference to index.html div
