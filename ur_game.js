@@ -2,8 +2,8 @@
 var config = {
     type: Phaser.AUTO,
     parent: 'game', //reference to index.html div
-    width: 600,
-    heigth: 400,
+    width: 800,
+    heigth: 600,
     scale: {
       mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH
@@ -26,15 +26,19 @@ var lines;
 var rosettes;
 
 const gridWidth = 60;
-const hexWidth = gridWidth-10;
-var starCoords = [[24,24],[24,6],[40,15],[40,33],[24,42],[8,33],[8,15]].reverse();
+
+const hexWidth = gridWidth/2-10;
+var starCoords = [];
 var coordx = 0;
 var coordy = hexWidth;
 for (let i = 0; i < 6; i++) {
-  console.log("running")
-  starCoords[i] = [coordx, coordy]
-  [coordx, coordy] = [coordx*0.5 - coordy*Math.sqrt(3)*0.5, coordx*Math.sqrt(3)*0.5 + coordy*0.5]
+  starCoords[i] = [coordx, coordy].slice()
+  const tempX = coordx
+  coordx = coordx*0.5 - coordy*Math.sqrt(3)*0.5
+  coordy = tempX*Math.sqrt(3)*0.5 + coordy*0.5
 }
+starCoords[6] = [0,0]
+starCoords = starCoords.map( c =>  [c[0] + gridWidth/2, c[1] + gridWidth/2]);
 
 
 
@@ -57,12 +61,11 @@ var hoveringOnPiece;
 
 function preload ()
 {
-  this.load.image('black_token', 'assets/black_token.png');
-  this.load.image('white_token', 'assets/white_token.png');
+  this.load.svg('black_token', 'assets/black_token.svg');
+  this.load.svg('white_token', 'assets/white_token.svg');
   this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
-  this.load.image('rosette','assets/rosette.png');
+  this.load.svg('rosette','assets/rosette2.svg');
 
-  
 
 }
 
@@ -84,7 +87,8 @@ function create ()
   ]
 
   graphics = this.add.graphics({ lineStyle: { width: 7, color: 0xBBADA0 }, fillStyle: {color: 0xe0d2c5} });
-  graphics.fillRoundedRect(gridWidth*4,gridWidth*1,gridWidth*1.5,gridWidth*1.5,16);
+  var r = graphics.fillRoundedRect(gridWidth*4,gridWidth*1,gridWidth*1.5,gridWidth*1.5,16);
+  // r.setColor('0xFFFFFF');
   graphics.fillRoundedRect(gridWidth*2.5,gridWidth*1,gridWidth*1.5,gridWidth*1.5,16);
   graphics.fillRoundedRect(gridWidth*2.5,gridWidth*2.5,gridWidth*1.5,gridWidth*1.5,16);
   graphics.fillRoundedRect(gridWidth*4,gridWidth*2.5,gridWidth*1.5,gridWidth*1.5,16);
@@ -113,11 +117,11 @@ function create ()
 
   //initialising dice
   dice = this.add.group();
-  // dice.create(gridWidth/2,gridWidth*1/2,'dice').setScale(0.4);
-  // dice.create(gridWidth/2,gridWidth*3/2,'dice').setScale(0.4);
-  // dice.create(gridWidth/2,gridWidth*5/2,'dice').setScale(0.4);
-  // dice.create(gridWidth/2,gridWidth*7/2,'dice').setScale(0.4);
-  diceText = this.add.text(12,gridWidth*4 ,diceRoll, { fontSize: '32px', fill: '#000' });
+  dice.create(gridWidth*9.5,gridWidth*1.5,'dice').setScale(0.4);
+  dice.create(gridWidth*9.5,gridWidth*2.5,'dice').setScale(0.4);
+  dice.create(gridWidth*10.5,gridWidth*1.5,'dice').setScale(0.4);
+  dice.create(gridWidth*10.5,gridWidth*2.5,'dice').setScale(0.4);
+  // diceText = this.add.text(12,gridWidth*4 ,diceRoll, { fontSize: '32px', fill: '#000' });
 
   // dicePath1 = new Phaser.Curves.Path(24+48,24);
   // dicePath1.quadraticBezierTo(48*0.5,48*1.5,48*0.5,48*0.5,);
@@ -140,13 +144,17 @@ function create ()
   // dicePath4.draw(graphics);
 
   //initialising text
-  turnText = this.add.text(gridWidth, 300, `turn: ${turnPiece}`, { fontSize: '32px', fill: '#000' });
+  // turnText = this.add.text(gridWidth, 300, `turn: ${turnPiece}`, { fontSize: '32px', fill: '#000' });
+
+  //initilising title text
+  const titleText = this.add.text(gridWidth, 20, `Royal Game of Ur`, {fontSize: '40px', fill: '#000'})
 
   //initialising pieces
   whitePieces = this.add.group();
   blackPieces = this.add.group();
   for (let i = 0; i < starCoords.length; i++) {
     const coord = starCoords[i].slice();
+    var whiteCircle = 
     whitePieces.create(coord[0] + 4*gridWidth,coord[1] + 3*gridWidth, "white_token");
   }
   for (let i = 0; i < starCoords.length; i++) {
@@ -163,17 +171,15 @@ function create ()
   piecesInPos[0]  = whitePieces.getChildren();
   piecesInPos[16] = blackPieces.getChildren();
   
-  rollAnim = this.anims.create({
-    key: 'roll',
-    frames: this.anims.generateFrameNumbers('dice'),
-    frameRate: 20,
-    duration: 200,
-  })
+  
 
   var _this = this;
   ghostPieceWhite = this.add.image(0,0,"white_token").setAlpha(0);
   ghostPieceBlack = this.add.image(0,0,"black_token").setAlpha(0);
   
+  //roll dice to start
+  rollDice(_this)
+
   //action to take on pointer down
   this.input.on('pointerdown', function (pointer){ //eventually pointer over to see possible move
     ghostPieceWhite.setAlpha(0);
@@ -332,22 +338,46 @@ function removePiece(pieceToRemove, _this) {
 
 
 function rollDice(_this) {
+  // rollAnim = _this.anims.create({
+  //   key: 'roll',
+  //   frames: _this.anims.generateFrameNumbers('dice'),
+  //   frameRate: 20,
+  //   duration: 200,
+  // })
+
+  
+
   const diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
   diceRoll = diceValues.reduce((a,b) => a+b,0);
-  var i = 0;
+  
+
+  var diceTimeline = _this.tweens.createTimeline();
+  const diceRollTime = 200;
+  var i = 0
   dice.getChildren().forEach(diceSprite => {
-    // diceSprite.anims.play('roll');
-    _this.tweens.add({
+    diceTimeline.add({
       targets: diceSprite,
-        rotation: 5,
-        duration: 200,
-        ease: 'Linear',
+      rotation: Phaser.Math.Between(-5,5)*1/3*Math.PI,
+      duration: diceRollTime,
+      ease: 'Linear',
+      offset: -diceRollTime,
+      // onComplete: function() {diceText.setText(diceRoll)} //this is called 4 times BAD
     });
+    diceSprite.setFrame(diceValues[i]);
+    i++
   });
 
-  // diceRoll = Phaser.Math.Between(0,2);
+  //,
 
-  diceText.setText(diceRoll);
+  
+
+  
+
+  diceTimeline.play()
+
+
+
+
 
   if(diceRoll == 0){
     console.log("ROLLED A ZERO")
@@ -375,7 +405,7 @@ function switchTurn() {
   // })
   //)
 
-  turnText.setText("turn: " + turnPiece)
+  // turnText.setText("turn: " + turnPiece)
 }
 
 function possibleMove(bPos, diceRoll, colorOfToken) {
