@@ -53,6 +53,7 @@
        this.load.image('black_token', 'assets/black_token.png');
        this.load.image('white_token', 'assets/white_token.png');
        this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
+       this.load.image('rosette','assets/rosette.png');
 
     }
 
@@ -72,18 +73,24 @@
         new Phaser.Geom.Line(gridWidth*7, gridWidth*1, gridWidth*7, gridWidth*4),
         new Phaser.Geom.Line(gridWidth*8, gridWidth*1, gridWidth*8, gridWidth*4),
       ]
-      rosettes = [
-        new Phaser.Geom.Line(gridWidth*2.5, gridWidth*1.5, gridWidth/2.5, 0xfff000),
-        new Phaser.Geom.Line(gridWidth*8.5, gridWidth*1.5, gridWidth/2.5),
-        new Phaser.Geom.Line(gridWidth*2.5, gridWidth*3.5, gridWidth/2.5),
-        new Phaser.Geom.Line(gridWidth*8.5, gridWidth*3.5, gridWidth/2.5),
-        new Phaser.Geom.Line(gridWidth*5.5, gridWidth*2.5, gridWidth/2.5),
-      ]
 
-      graphics = this.add.graphics({ lineStyle: { width: 2, color: 0xBBADA0 }, fillStyle: {color: 0xCDC0B4} });
 
-      graphics.fillRoundedRect(gridWidth*1, gridWidth*1, gridWidth*2, gridWidth*3, 8,);
-      graphics.fillRoundedRect(gridWidth*5, gridWidth*1, gridWidth*4, gridWidth*3, 8,);
+      graphics = this.add.graphics({ lineStyle: { width: 7, color: 0xBBADA0 }, fillStyle: {color: 0xe0d2c5} });
+      graphics.fillRoundedRect(gridWidth*4,gridWidth*1,gridWidth*1.5,gridWidth*1.5,16);
+      graphics.fillRoundedRect(gridWidth*2.5,gridWidth*1,gridWidth*1.5,gridWidth*1.5,16);
+      graphics.fillRoundedRect(gridWidth*2.5,gridWidth*2.5,gridWidth*1.5,gridWidth*1.5,16);
+      graphics.fillRoundedRect(gridWidth*4,gridWidth*2.5,gridWidth*1.5,gridWidth*1.5,16);
+    
+      graphics.fillStyle( 0xCDC0B4, 1);
+      graphics.fillRoundedRect(gridWidth*1, gridWidth*1, gridWidth*2, gridWidth*3, 8);
+      graphics.fillRoundedRect(gridWidth*5, gridWidth*1, gridWidth*4, gridWidth*3, 8);
+      graphics.fillRect(144,96,96,48);
+      graphics.fillStyle(0xBBADA0);
+
+      graphics.strokeRoundedRect(gridWidth*1, gridWidth*1, gridWidth*2, gridWidth*3, 8);
+      graphics.strokeRoundedRect(gridWidth*5, gridWidth*1, gridWidth*4, gridWidth*3, 8);
+      // graphics.fillRect(48*3,gridWidth*2,48*2,gridWidth*1);
+
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         graphics.strokeLineShape(line);
@@ -91,14 +98,11 @@
       // graphics.strokeCircle(gridWidth*2.5, gridWidth*1.5, gridWidth/2.5)
       const starCoords = [[24,24],[24,6],[40,15],[40,33],[24,42],[8,33],[8,15]].reverse();
 
-      function buildRosette(x,y){
-        // for (let i = 0; i < starCoords.length; i++) {
-        //   const coords = starCoords[i].slice;
-          graphics.strokeCircle(x + starCoords[0],y + starCoords[1], 8);
-        // }
-      }
-
-      buildRosette(gridWidth*2, gridWidth*1);
+      this.add.image(72+48,72,'rosette').setScale(0.2);
+      this.add.image(72+48,72+96,'rosette').setScale(0.2);
+      this.add.image(48*5.5,48*2.5,'rosette').setScale(0.2);
+      this.add.image(48*8.5,72+96,'rosette').setScale(0.2);
+      this.add.image(48*8.5,72,'rosette').setScale(0.2);
 
       //initialising dice
       dice = this.add.group();
