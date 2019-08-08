@@ -29,8 +29,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="170.89051"
-     inkscape:cy="40.348715"
+     inkscape:cx="194.32642"
+     inkscape:cy="-0.057387285"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -64,18 +64,18 @@
      id="layer1"
      transform="translate(0,-284.29998)">
     <rect
-       style="fill:#7e47a2;fill-opacity:1;stroke:#7e47a2;stroke-width:2.64583325;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.80000019;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
+       style="fill:#7e47a2;fill-opacity:1;stroke:#7e47a2;stroke-width:2.68564987;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.80000019;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
        id="rect817"
-       width="47.869354"
-       height="9.7693577"
-       x="1.3229166"
-       y="285.90771" />
+       width="48.114349"
+       height="10.01435"
+       x="1.3428249"
+       y="285.64282" />
     <rect
-       style="fill:#9f50b0;fill-opacity:1;stroke:#9f50b0;stroke-width:2.64583325;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.80000019;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
+       style="fill:#9f50b0;fill-opacity:1;stroke:#9f50b0;stroke-width:2.68564987;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.80000019;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
        id="rect817-3"
-       width="47.869354"
-       height="9.7693577"
-       x="52.122917"
-       y="285.90771" />
+       width="48.114349"
+       height="10.01435"
+       x="52.142822"
+       y="285.64282" />
   </g>
 </svg>
