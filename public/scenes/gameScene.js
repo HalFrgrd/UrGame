@@ -1,4 +1,3 @@
-import {CST} from "../CST.js";
 import {TextButton} from "./textbutton.js";
 
 export class GameScene extends Phaser.Scene{
@@ -8,8 +7,8 @@ export class GameScene extends Phaser.Scene{
     })
 
   }
-  init() {
-    console.log("GAME IS HERE")
+  init(gameMode) {
+    console.log("GAME IS HERE, with game mode: ", gameMode)
 
 
     this.boardPositionsAndIndexes = [ [21,22,23,16,17,18,19,20],
@@ -66,6 +65,8 @@ export class GameScene extends Phaser.Scene{
 
     this._this;
 
+    this.socket;
+
   }
   preload() {
     this.load.svg('black_token', 'assets/black_token.svg');
@@ -80,11 +81,8 @@ export class GameScene extends Phaser.Scene{
     let fillColor1 = Phaser.Display.Color.HexStringToColor(colString);
     return Phaser.Display.Color.GetColor(fillColor1.r, fillColor1.g, fillColor1.b)
   }
-  create(){
 
-
-    this.cameras.main.setPosition(this.shiftX,this.shiftY)
-
+  drawGraphics() {
     this.lines = [
       new Phaser.Geom.Line(this.gridWidth*1, this.gridWidth*2, this.gridWidth*9, this.gridWidth*2),
       new Phaser.Geom.Line(this.gridWidth*1, this.gridWidth*3, this.gridWidth*9, this.gridWidth*3),
@@ -129,9 +127,10 @@ export class GameScene extends Phaser.Scene{
     }
     // graphics.strokeCircle(this.gridWidth*2.5, this.gridWidth*1.5, this.gridWidth/2.5)
 
-    this.graphics.lineStyle(1, 0xC2C2C2)
-    this.graphics.strokeRoundedRect(this.gridWidth*1.1,20,this.gridWidth*1.8,16,2)
-    this.graphics.strokeRoundedRect(this.gridWidth*3.1,20,this.gridWidth*1.8,16,2)
+    //infor rectangles
+    // this.graphics.lineStyle(1, 0xC2C2C2)
+    // this.graphics.strokeRoundedRect(this.gridWidth*1.1,20,this.gridWidth*1.8,16,2)
+    // this.graphics.strokeRoundedRect(this.gridWidth*3.1,20,this.gridWidth*1.8,16,2)
     // this.infoText = this.add.text(this.gridWidth*2.5+3,20+3,"White's turn", {fontSize: '10px', fill: '#666666'})
 
     this.add.image(this.gridWidth*2.5,this.gridWidth*1.5,'rosette').setScale(0.2);
@@ -139,13 +138,16 @@ export class GameScene extends Phaser.Scene{
     this.add.image(this.gridWidth*5.5,this.gridWidth*2.5,'rosette').setScale(0.2);
     this.add.image(this.gridWidth*8.5,this.gridWidth*3.5,'rosette').setScale(0.2);
     this.add.image(this.gridWidth*8.5,this.gridWidth*1.5,'rosette').setScale(0.2);
+  }
+
+  addDiceAndPieces() {
 
     //initialising dice
     this.dice = this.add.group();
-    this.dice.create(this.gridWidth*9.5,this.gridWidth*1.5,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*9.5,this.gridWidth*2.5,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*10.5,this.gridWidth*1.5,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*10.5,this.gridWidth*2.5,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.5,this.gridWidth*1,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.5,this.gridWidth*2,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.5,this.gridWidth*3,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.5,this.gridWidth*4,'dice').setScale(0.4);
     // diceText = this.add.text(12,this.gridWidth*4 ,diceRoll, { fontSize: '32px', fill: '#000' });
 
     // dicePath1 = new Phaser.Curves.Path(24+48,24);
@@ -188,20 +190,30 @@ export class GameScene extends Phaser.Scene{
 
     this.piecesInPos[0]  = this.whitePieces.getChildren();
     this.piecesInPos[16] = this.blackPieces.getChildren();
-  
 
-    this._this = this;
-    let _this = this;
     this.ghostPieceWhite = this.add.image(0,0,"white_token").setAlpha(0);
 
     this.ghostPieceBlack = this.add.image(0,0,"black_token").setAlpha(0);
+    
+  }
+
+  create(){
+
+
+    this.cameras.main.setPosition(this.shiftX,this.shiftY)
+
+    
+
+    this.drawGraphics()
+    this.addDiceAndPieces()
+
+    let _this = this;
     
     //roll dice to start
     this.rollDice(_this)
 
     //action to take on pointer down
-    this.input.on('pointerdown', function (pointer){ //eventually pointer over to see possible move
-      
+    this.input.on('pointerdown', function (pointer){
       _this.ghostPieceWhite.setAlpha(0);
       _this.ghostPieceBlack.setAlpha(0);
       workOutMove(pointer, true);    
@@ -213,17 +225,14 @@ export class GameScene extends Phaser.Scene{
 
     this.hoveringOnPiece = -1
     this.input.on('pointermove', function (pointer){
-      // console.log(pointer.x)
       let newHoveringOnPiece = _this.mouseXYtoBoardPos(pointer.x,pointer.y);
-      if(newHoveringOnPiece != this.hoveringOnPiece){ //only do this when pointer moves onto a new area of the board (new square, or off board)
-        // console.log("removing")
+      if(newHoveringOnPiece != this.hoveringOnPiece){ //only when pointer moves onto a new area (new square, or off board)
         _this.sys.canvas.style.cursor = "initial"
 
         _this.ghostPieceWhite.setAlpha(0);
         _this.ghostPieceBlack.setAlpha(0);
         _this.hoveringOnPiece = newHoveringOnPiece
 
-        // console.log("updating now")
         workOutMove(pointer, false)
       }
     })
@@ -314,18 +323,12 @@ export class GameScene extends Phaser.Scene{
                 break;
               }
             }
-            
-            return true;
-
           }
         } else {
           _this.sys.canvas.style.cursor = "not-allowed"
         }
       } else{ //we are not ( on board and on a piece)
         _this.sys.canvas.style.cursor = "initial"
-
-        return false 
-
       }
     }
   }
@@ -426,7 +429,7 @@ export class GameScene extends Phaser.Scene{
         offset: -diceRollTime,
         // onComplete: function() {diceText.setText(diceRoll)} //this is called 4 times BAD
       });
-      diceSprite.setFrame(diceValues[i]);
+      diceSprite.setFrame(diceValues[i]*-1 + 1);
       i++
     });
   
