@@ -1,5 +1,8 @@
 import {GameScene} from "/scenes/gameScene.js";
 import {MenuScene} from "/scenes/menuScene.js";
+import {JoinFriendScene} from "/scenes/joinFriendScene.js";
+import {JoinRandomScene} from "/scenes/joinRandomScene.js";
+import { CreateGameScene } from "./scenes/createGame.js";
 
 let game = new Phaser.Game({
   width: 800,
@@ -8,12 +11,15 @@ let game = new Phaser.Game({
   parent: 'game', //reference to index.html div
   backgroundColor: '#FAF8EF',
   scene: [
-    MenuScene, GameScene
+    MenuScene, GameScene, JoinFriendScene, JoinRandomScene, CreateGameScene
   ],
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
+  dom: {
+    createContainer: true
+  }
 
 })
 

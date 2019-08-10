@@ -9,7 +9,7 @@ export class GameScene extends Phaser.Scene{
   }
   init(gameMode) {
     console.log("GAME IS HERE, with game mode: ", gameMode)
-
+    this.roomKey = gameMode[1]
 
     this.boardPositionsAndIndexes = [ [21,22,23,16,17,18,19,20],
     [12, 11, 10, 9, 8, 7, 6 ,5],
@@ -210,16 +210,18 @@ export class GameScene extends Phaser.Scene{
     this.addDiceAndPieces()
 
     let _this = this;
-    this.socket = io();
+    this.socket = io("/gameplay");
+     //request to play with friend
+    console.log("joining room: " , this.socket.emit("requestRoomJoin", this.roomKey, ()=>{console.log("callback says I joined successfully")}))
 
-    this.socket.on("newPlayer", function (newPlayer) {
-      console.log("new player incoming: ", newPlayer.id, _this.socket.id)
-      if (newPlayer.id === _this.socket.id) {
-        _this.turnNumber = newPlayer.number
-        console.log("my player id is: ", newPlayer.id)
-        console.log("my number is ", newPlayer.number)
-      }
-    });
+    // this.socket.on("newPlayer", function (newPlayer) {
+    //   console.log("new player incoming: ", newPlayer.id, _this.socket.id)
+    //   if (newPlayer.id === _this.socket.id) {
+    //     _this.turnNumber = newPlayer.number
+    //     console.log("my player id is: ", newPlayer.id)
+    //     console.log("my number is ", newPlayer.number)
+    //   }
+    // });
 
     this.socket.on("startingGame", function (turnNumber) {
       console.log("starting game as player: ", turnNumber)
@@ -235,7 +237,7 @@ export class GameScene extends Phaser.Scene{
 
     this.socket.on('disconnect', function(playerId) {
       if (playerId !== _this.socket.id){
-        console.log("other player has disconnected")
+        console.log("other player has disconnected")  
       }
     })
 
@@ -246,11 +248,11 @@ export class GameScene extends Phaser.Scene{
     })
 
     this.socket.on("playerMoved", function (moveData){
-      workOutMove(null,true,moveData[1],true) //move the piece
+      workOutMove(null,true,moveData[0],true) //move the piece
       // _this.freezeGame = false; // I can now play
 
-      console.log("opposition moved to: ", moveData[2], [4,8,14,22,20].includes(moveData[2]))      
-      if( [4,8,14,22,20].includes(moveData[2])){
+      console.log("opposition moved to: ", moveData[1], [4,8,14,22,20].includes(moveData[1]))      
+      if( [4,8,14,22,20].includes(moveData[1])){
         _this.freezeGame = true;
         console.log("keeping game frozen since other player moves again")
       } else {

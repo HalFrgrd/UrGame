@@ -22,13 +22,13 @@ export class MenuScene extends Phaser.Scene{
     
     let menuStructure = [
       
-      ["Play",()=>{console.log("hello")} , [
-        ["Against AI", ()=>{}, []],
-        ["Local play",  ()=>{} ,[] ],
+      ["Play",()=>{} , [
+        ["Local play", ()=>{this.scene.launch("GAME", "LOCALPLAY")}, []],
+        ["Against AI",  ()=>{this.scene.launch("GAME", "AIPLAY")} ,[] ],
         ["Online", ()=>{}, [
-          ["Create game",()=>{} ,[]],
-          ["Join a friend's game", ()=>{},[]],
-          ["Join a random game", ()=>{},[]],
+          ["Create game",()=>{this.scene.launch("CREATEGAME")} ,[]],
+          ["Join a friend's game", ()=>{this.scene.launch("JOINFRIEND")},[]],
+          ["Join a random game", ()=>{this.scene.launch("JOINRANDOM")},[]],
         ]]
       ]],
       ["How to play", ()=>{},[]],
@@ -43,30 +43,29 @@ export class MenuScene extends Phaser.Scene{
 }
 
 class MenuBuilder {
-  constructor (_this, menuStructure) {
+  constructor (_this, menuStructure, parentGroup = null) {
     this.buttons = _this.add.group()
     var self = this
     for (var [i, butt] of menuStructure.entries()) {
-     
-     
       !function outer(iInside,bInside, selfInside) { //This resolves callback in loops problem
-
         selfInside.buttons.add(_this.add.existing(new TextButton(_this, 400, 300 + i*60, butt[0], 
-        
-        ()=>{
-          console.log(iInside)
-          bInside[1](); //do our custom function
-          selfInside.buttons.toggleVisible()
-          new MenuBuilder(_this, bInside[2])
-      }
-
-          
-        
-      
+          ()=>{
+            console.log(iInside)
+            bInside[1](); //do our custom function
+            selfInside.buttons.toggleVisible()
+            if(bInside[2].length > 0) { new MenuBuilder(_this, bInside[2], selfInside.buttons) }
+          }
         )))
       }(i,butt, self)
     }
-  this.buttons.add(_this.add.existing(new TextButton(_this, 400, 300 + (i+1)*60, "Back", ()=>{})))
+
+    if(parentGroup !== null){
+      if(i === undefined) var i = -1 
+      this.buttons.add(_this.add.existing(new TextButton(_this, 400, 300 + (i+1)*60, "Back ↩", ()=>{
+        this.buttons.toggleVisible()
+        parentGroup.toggleVisible()
+      })))
+    }
   }
 
 

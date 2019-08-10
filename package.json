@@ -6,6 +6,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "http-server": "^0.11.1",
+    "line-reader": "^0.4.0",
     "phaser": "^3.18.1",
     "socket.io": "^2.2.0"
   },
