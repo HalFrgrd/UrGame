@@ -9,7 +9,20 @@ export class GameScene extends Phaser.Scene{
   }
   init(gameMode) {
     console.log("GAME IS HERE, with game mode: ", gameMode)
-    this.roomKey = gameMode[1]
+
+    this.gameMode;
+    switch(gameMode){
+      case "LOCALPLAY": {this.gameMode = gameMode; break;}
+      case "AIPLAY": {this.gameMode = gameMode; break;}
+      default: {
+        this.gameMode = gameMode[0]; 
+        this.roomKey = gameMode[1];
+        this.socket;
+        this.turnNumber;
+        break;
+      }
+    }
+    
 
     this.boardPositionsAndIndexes = [ [21,22,23,16,17,18,19,20],
     [12, 11, 10, 9, 8, 7, 6 ,5],
@@ -43,7 +56,7 @@ export class GameScene extends Phaser.Scene{
     this.finishedBlacks = 0;
     this.yetToStartWhites = 7;
     this.yetToStartBlacks = 7;
-    this.diceRoll = 1;
+    this.diceRoll;
     this.diceText;
     this.dice;
     this.dicePath;
@@ -64,9 +77,8 @@ export class GameScene extends Phaser.Scene{
 
     this._this;
 
-    this.socket;
-    this.turnNumber;
     this.freezeGame;
+    // this.wasIJustPlaying;
 
 
   }
@@ -199,92 +211,93 @@ export class GameScene extends Phaser.Scene{
     
   }
 
-  create(){
-
-
-    this.cameras.main.setPosition(this.shiftX,this.shiftY)
-    this.freezeGame = true;
-
-
-    this.drawGraphics()
-    this.addDiceAndPieces()
-
-    let _this = this;
-    this.socket = io("/gameplay");
-     //request to play with friend
-    console.log("joining room: " , this.socket.emit("requestRoomJoin", this.roomKey, ()=>{console.log("callback says I joined successfully")}))
-
-    // this.socket.on("newPlayer", function (newPlayer) {
-    //   console.log("new player incoming: ", newPlayer.id, _this.socket.id)
-    //   if (newPlayer.id === _this.socket.id) {
-    //     _this.turnNumber = newPlayer.number
-    //     console.log("my player id is: ", newPlayer.id)
-    //     console.log("my number is ", newPlayer.number)
-    //   }
-    // });
-
-    this.socket.on("startingGame", function (turnNumber) {
+  onlineFunctions(_this) {
+    _this.socket = io("/gameplay");
+    //request to play with friend
+    _this.socket.emit("requestRoomJoin", _this.roomKey, ()=>{})
+    
+     _this.socket.on("startingGame", function (turnNumber) {
       console.log("starting game as player: ", turnNumber)
       _this.turnNumber = turnNumber //for later global reference
-      if(turnNumber == 1) {//I shouldn't play
-        _this.switchTurn()
+      if(turnNumber == 2) {//I shouldn't play, I was second in the room
+        _this.switchTurn(0)
         _this.freezeGame = true; 
+        // _this.wasIJustPlaying = false;
       } else{
         console.log("I have unfrozen game")
         _this.freezeGame = false; 
+        // _this.wasIJustPlaying = true;
+
       }
     });
 
-    this.socket.on('disconnect', function(playerId) {
-      if (playerId !== _this.socket.id){
-        console.log("other player has disconnected")  
-      }
-    })
-
-    this.socket.on("newDiceRoll", function(diceValues){
+    _this.socket.on("newDiceRoll", function(diceValues, supposedToPlay){
       console.log("received new dice vlaues: ", diceValues)
-      _this.diceRoll = diceValues.reduce((a,b) => a+b,1);
-      _this.rollDice(_this, diceValues)
+
+      console.log("am I supposed to play: ", supposedToPlay, _this.turnNumber)
+      _this.diceRoll = diceValues.reduce((a,b) => a+b,0);
+      _this.animateDice(_this, diceValues)
+      
+      if(_this.diceRoll == 0){
+        console.log("rolled a zero")
+        
+        if(supposedToPlay === _this.turnNumber) { //I am supposed to play
+          console.log("there was a zero and I was just playing")
+          _this.freezeGame = true; // I will no longer play
+          setTimeout(function() { 
+            _this.socket.emit('playedTurn',  [-1,-1, _this.turnNumber*-1 + 3]); 
+            _this.switchTurn()
+          }, 3000);  //like I played a pointless turn
+        } else{
+          setTimeout(function() { 
+            _this.switchTurn()
+          }, 3000);  
+        }
+
+      }
+      
     })
-
-    this.socket.on("playerMoved", function (moveData){
-      workOutMove(null,true,moveData[0],true) //move the piece
-      // _this.freezeGame = false; // I can now play
-
-      console.log("opposition moved to: ", moveData[1], [4,8,14,22,20].includes(moveData[1]))      
+    
+    _this.socket.on("otherPlayerMoved", function (moveData){ //only when other player moved
+      // _this.wasIJustPlaying = false;
+      _this.workOutMove(_this,null,true,moveData[0],true) //move the piece
+      console.log("received that other player moved")
+      // console.log("opposition moved to: ", moveData[1], [4,8,14,22,20].includes(moveData[1]))      
       if( [4,8,14,22,20].includes(moveData[1])){
         _this.freezeGame = true;
         console.log("keeping game frozen since other player moves again")
       } else {
         _this.freezeGame = false;
+        // _this.switchTurn();
         console.log("my turn now")
+        // _this.wasIJustPlaying = true;
       }
-
-      // console.log("unfrozen because other person played")
-      // console.log("someone played thisturn: ", moveData[1])
-      // console.log("was it me: ", moveData[0] ,  _this.socket.id )
-      // console.log("board pos; ", moveData[1])
+      
     })
 
-    
-    //roll dice to start
-    // this.rollDice(_this)
+    _this.socket.on('disconnect', function(playerId) {
+      if (playerId !== _this.socket.id){
+        console.log("other player has disconnected")  
+      }
+    })
+  }
 
+  mouseActionFunctions(_this) {
     //action to take on pointer down
-    this.input.on('pointerdown', function (pointer){
+    _this.input.on('pointerdown', function (pointer){
       _this.ghostPieceWhite.setAlpha(0);
       _this.ghostPieceBlack.setAlpha(0);
-      workOutMove(pointer, true);    
+      _this.workOutMove(_this, pointer, true);    
     });
 
-    
 
-    this.input.on('pointerup', () => {
+
+    _this.input.on('pointerup', () => {
       _this.sys.canvas.style.cursor = "initial"
     })
 
-    this.hoveringOnPiece = -1
-    this.input.on('pointermove', function (pointer){
+    _this.hoveringOnPiece = -1
+    _this.input.on('pointermove', function (pointer){
       let newHoveringOnPiece = _this.mouseXYtoBoardPos(pointer.x,pointer.y);
       if(newHoveringOnPiece != this.hoveringOnPiece){ //only when pointer moves onto a new area (new square, or off board)
         _this.sys.canvas.style.cursor = "initial"
@@ -293,111 +306,152 @@ export class GameScene extends Phaser.Scene{
         _this.ghostPieceBlack.setAlpha(0);
         _this.hoveringOnPiece = newHoveringOnPiece
 
-        workOutMove(pointer, false)
+        _this.workOutMove(_this, pointer, false)
       }
     })
+  }
 
-    function workOutMove(pointer, takeAction, boardPos, forceMove = false) {
-      if(boardPos === undefined){ //if it wasn't already defined,
-        var boardPos = _this.mouseXYtoBoardPos(pointer.x, pointer.y);
-      } else{
-        console.log("given was: ", boardPos)
-      }
+  create(){
 
-        
-      if(boardPos >= 0 && _this.piecesInPos[boardPos].length > 0 && (!_this.freezeGame || forceMove)){ // on board and on some piece
-        
-        const colorOfPiece = _this.piecesInPos[boardPos][_this.piecesInPos[boardPos].length -1].texture.key;
+    this.cameras.main.setPosition(this.shiftX,this.shiftY)
+    this.freezeGame = true;
 
-        var possiblePos = _this.possibleMove(boardPos, _this.diceRoll, colorOfPiece);
+    this.drawGraphics()
+    this.addDiceAndPieces()
+
+    let _this = this;
+    
+    //set up for reactions on mouse movement and clicks
+    this.mouseActionFunctions(_this);
+    
+    //set up for server communication and game starting
+    if(this.gameMode === "ONLINEPLAY" ) this.onlineFunctions(_this);
+
+    if(this.gameMode === "LOCALPLAY"){
+      //roll dice to start
+      this.rollDice(_this)
+      this.freezeGame = false;
+    }
+
+  }
+
+  workOutMove(_this, pointer, takeAction, boardPos, forceMove = false) {
+    if(boardPos === undefined){ //if it wasn't already defined,
+      var boardPos = _this.mouseXYtoBoardPos(pointer.x, pointer.y);
+    } else{
+      console.log("given was: ", boardPos)
+    }
+
+    if(boardPos >= 0 && _this.piecesInPos[boardPos].length > 0 && (!_this.freezeGame || forceMove)){ // on board and on some piece
+      
+      const colorOfPiece = _this.piecesInPos[boardPos][_this.piecesInPos[boardPos].length -1].texture.key;
+      
+      var possiblePos = _this.possibleMove(boardPos, _this.diceRoll, colorOfPiece);
+      
+      if(colorOfPiece == _this.turnPiece && possiblePos.length > 0 ){ //there is a legal move
+        _this.sys.canvas.style.cursor = "pointer"
         
-        if(colorOfPiece == _this.turnPiece && possiblePos.length > 0 ){ //there is a legal move
-          _this.sys.canvas.style.cursor = "pointer"
+        
+        const newPos = possiblePos[0]; //the legal move
+        if(takeAction){
           
-          const newPos = possiblePos[0]; //the legal move
-          if(takeAction){
-            if(!_this.freezeGame){ //only say a someone moved if it was me.
-              console.log("telling that I have played")
-              _this.socket.emit('playedTurn',  [_this.mirrorMove(boardPos),newPos])
-            }
-            if(boardPos ==  0) {_this.yetToStartWhites -= 1}
-            if(boardPos == 16) {_this.yetToStartBlacks -= 1}
+          if(boardPos ==  0) {_this.yetToStartWhites -= 1}
+          if(boardPos == 16) {_this.yetToStartBlacks -= 1}
 
-            //update our knowledge of where the piece is
-            _this.piecesInPos[newPos].push(_this.piecesInPos[boardPos].pop());
-          }
-
-          //update the sprites position
-          var newCoordinates;
-          switch (newPos) { //special cases for when white or black are finishing
-            case 15: { 
-              newCoordinates = _this.starCoords[6-_this.finishedWhites].slice();
-              newCoordinates[0] += 3*_this.gridWidth;
-              newCoordinates[1] += 3*_this.gridWidth;
-              if(takeAction) _this.finishedWhites++;
-              break;
-            }
-            case 23: {
-              newCoordinates = _this.starCoords[6-_this.finishedBlacks].slice();
-              newCoordinates[0] += 3*_this.gridWidth;
-              newCoordinates[1] += 1*_this.gridWidth;
-              if(takeAction) _this.finishedBlacks++;
-              break;
-            }
-            default: { //this is not a finishing move
-              if(_this.piecesInPos[newPos].length > 1 && takeAction){ //we are removing a piece of a different color
-                _this.removePiece(_this.piecesInPos[newPos].shift(), _this);
-              } 
-              newCoordinates = _this.boardPosToXY(newPos);
-            }
-          }
-
-          if(takeAction){
-            _this.tweens.add({
-                targets: _this.piecesInPos[newPos][_this.piecesInPos[newPos].length-1],
-                x: newCoordinates[0],
-                y: newCoordinates[1],
-                scaleX: ((newPos == 23 || newPos == 15) ? 0.05 :0.2),
-                scaleY: ((newPos == 23 || newPos == 15) ? 0.05 :0.2),
-                duration: 200,
-                ease: 'Linear',
-                onComplete: () => {
-                  if(_this.finishedBlacks == 1 || _this.finishedWhites == 1){
-                    _this.finishGame(_this)
-                  } else{
-                    // _this.rollDice(_this)
-                  }
-                }
-            });
-            
-            //Change the turn
-            if( ![4,8,14,22,20].includes(newPos)){
-              _this.switchTurn();
-              _this.freezeGame = true;
-            }
-          } else {
-            // console.log("adding ghost piece")
-            switch (colorOfPiece) {
-              case "white_token": {
-                _this.ghostPieceWhite.x = newCoordinates[0]
-                _this.ghostPieceWhite.y = newCoordinates[1]
-                _this.ghostPieceWhite.setScale(((newPos == 15) ? 0.05 :0.2)).setAlpha(0.6)
-                break;
-              }
-              case "black_token": {
-                _this.ghostPieceBlack.x = newCoordinates[0]
-                _this.ghostPieceBlack.y = newCoordinates[1]
-                _this.ghostPieceBlack.setScale(((newPos == 23) ? 0.05 :0.2)).setAlpha(0.6)
-                break;
-              }
-            }
-          }
-        } else {
-          _this.sys.canvas.style.cursor = "not-allowed"
+          //update our knowledge of where the piece is
+          _this.piecesInPos[newPos].push(_this.piecesInPos[boardPos].pop());
         }
-      } else{ //we are not ( on board and on a piece)
-        _this.sys.canvas.style.cursor = "initial"
+
+        //update the sprites position
+        var newCoordinates;
+        switch (newPos) { //special cases for when white or black are finishing
+          case 15: { 
+            newCoordinates = _this.starCoords[6-_this.finishedWhites].slice();
+            newCoordinates[0] += 3*_this.gridWidth;
+            newCoordinates[1] += 3*_this.gridWidth;
+            if(takeAction) _this.finishedWhites++;
+            break;
+          }
+          case 23: {
+            newCoordinates = _this.starCoords[6-_this.finishedBlacks].slice();
+            newCoordinates[0] += 3*_this.gridWidth;
+            newCoordinates[1] += 1*_this.gridWidth;
+            if(takeAction) _this.finishedBlacks++;
+            break;
+          }
+          default: { //this is not a finishing move
+            if(_this.piecesInPos[newPos].length > 1 && takeAction){ //we are removing a piece of a different color
+              _this.removePiece(_this.piecesInPos[newPos].shift(), _this);
+            } 
+            newCoordinates = _this.boardPosToXY(newPos);
+          }
+        }
+
+        if(takeAction){
+          _this.tweens.add({
+              targets: _this.piecesInPos[newPos][_this.piecesInPos[newPos].length-1],
+              x: newCoordinates[0],
+              y: newCoordinates[1],
+              scaleX: ((newPos == 23 || newPos == 15) ? 0.05 :0.2),
+              scaleY: ((newPos == 23 || newPos == 15) ? 0.05 :0.2),
+              duration: 200,
+              ease: 'Linear',
+              onComplete: () => {
+                if(_this.finishedBlacks == 1 || _this.finishedWhites == 1){
+                  _this.finishGame(_this)
+                } else{
+                  if(_this.gameMode === "LOCALPLAY") _this.rollDice(_this)
+                }
+              }
+          });
+          
+          //Change the turn
+          if( ![4,8,14,22,20].includes(newPos)){
+            _this.switchTurn();
+            if(_this.gameMode === "ONLINEPLAY") {
+              if(takeAction && !_this.freezeGame && _this.gameMode === "ONLINEPLAY" ){ //only say a someone moved if it was me.
+                console.log("telling that I have played")
+                _this.socket.emit('playedTurn',  [_this.mirrorMove(boardPos),newPos, _this.turnNumber*-1 + 3])
+                _this.freezeGame = true;
+              }
+
+              // _this.freezeGame = true;
+              // _this.wasIJustPlaying = true;
+            }
+            
+          } else {
+            if(takeAction && !_this.freezeGame && _this.gameMode === "ONLINEPLAY" ){ //only say a someone moved if it was me.
+              console.log("telling that I have played, and should play again")
+              _this.socket.emit('playedTurn',  [_this.mirrorMove(boardPos),newPos, _this.turnNumber])
+              // _this.freezeGame = false;
+            }
+          }
+
+        } else {
+          // console.log("adding ghost piece")
+          switch (colorOfPiece) {
+            case "white_token": {
+              _this.ghostPieceWhite.x = newCoordinates[0]
+              _this.ghostPieceWhite.y = newCoordinates[1]
+              _this.ghostPieceWhite.setScale(((newPos == 15) ? 0.05 :0.2)).setAlpha(0.6)
+              break;
+            }
+            case "black_token": {
+              _this.ghostPieceBlack.x = newCoordinates[0]
+              _this.ghostPieceBlack.y = newCoordinates[1]
+              _this.ghostPieceBlack.setScale(((newPos == 23) ? 0.05 :0.2)).setAlpha(0.6)
+              break;
+            }
+          }
+        }
+
+
+
+      } else {
+        _this.sys.canvas.style.cursor = "not-allowed"
       }
+    } else{ //we are not ( on board and on a piece)
+      _this.sys.canvas.style.cursor = "initial"
     }
   }
 
@@ -406,7 +460,7 @@ export class GameScene extends Phaser.Scene{
     let buttons = _this.add.group()
     buttons.add(this.add.existing(new TextButton(this, 400-_this.shiftX, 280-_this.shiftY, "Play Again", ()=>{
 
-      _this.scene.restart("GAME")
+      _this.scene.restart(this.gameMode)
  
 
     })).setAlpha(0))
@@ -510,11 +564,9 @@ export class GameScene extends Phaser.Scene{
     diceTimeline.play()
   }
 
-  rollDice(_this, diceValues) {
+  rollDice(_this) { //only run for local plays
     
-    if (diceValues === undefined){
-      var diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
-    }
+    var diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
     
     this.diceRoll = diceValues.reduce((a,b) => a+b,0);
   
@@ -522,14 +574,14 @@ export class GameScene extends Phaser.Scene{
     
     // console.log("dice roll: ", this.diceRoll)
   
-    // if(this.diceRoll == 0){
-    //   // console.log("ROLLED A ZERO")
-    //   _this.time.delayedCall(1000, function() {
-    //     // console.log("RE ROLLING");
-    //     _this.switchTurn();
-    //     _this.rollDice(_this)
-    //   }, [], _this);
-    // }
+    if(this.diceRoll == 0){
+      console.log("ROLLED A ZERO")
+      _this.time.delayedCall(1000, function() {
+        // console.log("RE ROLLING");
+        _this.switchTurn();
+        _this.rollDice(_this)
+      }, [], _this);
+    }
   }
 
   tweenColor(shapeToTween, startColor, endColor, duration) {
@@ -555,7 +607,7 @@ export class GameScene extends Phaser.Scene{
 
   };
   
-  switchTurn() {
+  switchTurn(duration = 300) {
     var toActivate;
     var toDisactivate
     switch (this.turnPiece) {
@@ -573,10 +625,10 @@ export class GameScene extends Phaser.Scene{
 
     // console.log(this.unactivatedColor)  
     toActivate.getChildren().forEach(r=>{
-      this.tweenColor(r,this.unactivatedColor,this.activatedColor,300)
+      this.tweenColor(r,this.unactivatedColor,this.activatedColor,duration)
     })
     toDisactivate.getChildren().forEach(r=>{
-      this.tweenColor(r,this.activatedColor,this.unactivatedColor,300)
+      this.tweenColor(r,this.activatedColor,this.unactivatedColor,duration)
     })
 
 

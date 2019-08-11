@@ -65,52 +65,61 @@ var inRooms = {}
 var gamePlaying = io.of('/gameplay').on('connection', function (socket) {
   console.log('someone joined game play');
 
-  // players[socket.id] = {
-  //   id: socket.id,
-  //   number: Object.keys(players).length
-  // };
-
-  // var inRoom = 0;
-
   var ourRoomKey;
   socket.on("requestRoomJoin", function(roomKey, callBackFn){
     socket.join(roomKey)
     ourRoomKey = roomKey;
     callBackFn()
-    console.log("one person joined room: ", roomKey)
-
+    
     if(inRooms[ourRoomKey] === undefined) {
-      inRooms[ourRoomKey] = 0
+      inRooms[ourRoomKey] = 1
     } else {
       inRooms[ourRoomKey] += 1
     }
+    console.log("one person joined room: ", roomKey, inRooms[ourRoomKey])
 
     if(inRooms[ourRoomKey] == 2){
-      console.log("starting game with players: ", players)
       
       socket.emit("startingGame", inRooms[ourRoomKey])
+      socket.to(ourRoomKey).emit("startingGame", 1) //only the first person gets this
+      rollAndSendDice(1)
 
-      let diceValues = [ getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),];
-      console.log("sending new dice values: ", diceValues);
-      io.in(ourRoomKey).emit("newDiceRoll", diceValues); //tell both clients of new dice values
     } else{
-      socket.emit("startingGame", inRooms[ourRoomKey])
+      //socket.emit("startingGame", inRooms[ourRoomKey])
     }
 
   })
 
-  socket.on("playedTurn", function (moves){
-    console.log("room key is: ", ourRoomKey)
+  function rollAndSendDice(supposeToPlay) {
 
+    let diceValues = [ getRandomInt(0,2) ,getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),];
+    console.log("sending new dice values: ", diceValues);
+    io.of('gameplay').to(ourRoomKey).emit("newDiceRoll", diceValues, supposeToPlay); //tell both clients of new dice values
+
+
+  }
+
+  // socket.on("tellOtherPersonToPlay", function() {
+  //   rollAndSendDice()
+  //   socket.in(ourRoomKey).emit("otherPlayerMoved", [-1,-1])
+  // })
+
+  socket.on("playedTurn", function (moves){
+    console.log("someone moved: ", moves[0], " to ", moves[1])
+
+    
     let squareThatWasMoved = moves[0]
     let squareNowOccupied = moves[1]
+    let supposeToPlay = moves[2]
     // console.log(players[socket.id].number," moved from, ", squareThatWasMoved)
-    socket.to(ourRoomKey).emit("playerMoved", [squareThatWasMoved,squareNowOccupied]) //alert otherplayer of this move
-
+    socket.in(ourRoomKey).emit("otherPlayerMoved", [squareThatWasMoved,squareNowOccupied]) //alert otherplayer of this move
+    
+    rollAndSendDice(supposeToPlay);
     //sending dice
-    let diceValues = [ getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),];
-    console.log("sending new dice values: ", diceValues);
-    io.of('gameplay').to(ourRoomKey).emit("newDiceRoll", diceValues); //tell both clients of new dice values
+    // let diceValues = [ getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),];
+    // console.log("sending new dice values: ", diceValues);
+    // io.of('gameplay').to(ourRoomKey).emit("newDiceRoll", diceValues); //tell both clients of new dice values
+
   
   })
 
