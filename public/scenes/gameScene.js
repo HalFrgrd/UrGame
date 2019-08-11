@@ -117,12 +117,6 @@ export class GameScene extends Phaser.Scene{
     this.whiteTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*3,this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1));
     this.whiteTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*5,this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1));
 
-    // this.blackTurnIndicators.add(this.add.rexRoundRectangle(10,10,100,100,0x000).setDepth(2))
-
-    // this.blackTurnIndicators.getChildren().forEach( r => {
-    //   r.fillStyle(0x000, 0)
-    // })
-
     this.graphics.fillStyle( 0xCDC0B4, 1);
     this.graphics.fillRoundedRect(this.gridWidth*1, this.gridWidth*1, this.gridWidth*2, this.gridWidth*3, 8);
     this.graphics.fillRoundedRect(this.gridWidth*5, this.gridWidth*1, this.gridWidth*4, this.gridWidth*3, 8);
@@ -140,10 +134,10 @@ export class GameScene extends Phaser.Scene{
     // graphics.strokeCircle(this.gridWidth*2.5, this.gridWidth*1.5, this.gridWidth/2.5)
 
     //infor rectangles
-    // this.graphics.lineStyle(1, 0xC2C2C2)
-    // this.graphics.strokeRoundedRect(this.gridWidth*1.1,20,this.gridWidth*1.8,16,2)
-    // this.graphics.strokeRoundedRect(this.gridWidth*3.1,20,this.gridWidth*1.8,16,2)
-    // this.infoText = this.add.text(this.gridWidth*2.5+3,20+3,"White's turn", {fontSize: '10px', fill: '#666666'})
+    this.graphics.lineStyle(1, 0xC2C2C2)
+    this.graphics.strokeRoundedRect(this.gridWidth*1,20,this.gridWidth*8,32,4)
+    this.infoText = this.add.text(this.gridWidth*1+6+3,20+6,"", {fontSize: '20px', fill: '#666666'})
+    if(this.gameMode === "LOCALPLAY") this.changeInfoText("White's turn", 0)
 
     this.add.image(this.gridWidth*2.5,this.gridWidth*1.5,'rosette').setScale(0.2);
     this.add.image(this.gridWidth*2.5,this.gridWidth*3.5,'rosette').setScale(0.2);
@@ -156,10 +150,10 @@ export class GameScene extends Phaser.Scene{
 
     //initialising dice
     this.dice = this.add.group();
-    this.dice.create(this.gridWidth*9.5,this.gridWidth*1,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*9.5,this.gridWidth*2,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*9.5,this.gridWidth*3,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*9.5,this.gridWidth*4,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.8,this.gridWidth*1,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.8,this.gridWidth*2,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.8,this.gridWidth*3,'dice').setScale(0.4);
+    this.dice.create(this.gridWidth*9.8,this.gridWidth*4,'dice').setScale(0.4);
 
 
     //initialising pieces
@@ -184,6 +178,27 @@ export class GameScene extends Phaser.Scene{
     
   }
 
+  changeInfoText(newText, duration = 300) {
+    console.log(this.infoText.text)
+    var timeline = this.tweens.createTimeline();
+    let _this = this
+    timeline.add({
+      targets: _this.infoText,
+      alpha: 0,
+      duration: duration,
+      onComplete: ()=>{
+        _this.infoText.text = newText
+      }
+    })
+    timeline.add({
+      targets: _this.infoText,
+      alpha: 1,
+      duration: duration,
+      offset: duration,
+    })
+    timeline.play();
+  } 
+
   onlineFunctions(_this) {
     _this.socket = io("/gameplay");
     //request to play with friend
@@ -195,20 +210,15 @@ export class GameScene extends Phaser.Scene{
       switch (turnNumber) {
         case 1: {
           _this.freezeGame = false; 
-          _this.piecesInPos
+          _this.piecesInPos;
+          _this.changeInfoText("Your turn")
           break
         }
         case 2: { //I shouldn't play, I was second in the room
           _this.switchTurn(0)
           _this.freezeGame = true; 
-          // console.log("trying to move black")
-          // _this.turnPiece = "black_token"
-          // let oldDiceRoll = _this.diceRoll + 1 -1;
-          // _this.diceRoll = 4;
-          // _this.workOutMove(_this,null,true,16,true)
-          // _this.workOutMove(_this,null,true,20,true)
-          // _this.diceRoll = oldDiceRoll;
-          // _this.turnPiece = "white_token"
+          _this.changeInfoText("Other player's turn")
+
 
 
           break;
@@ -223,13 +233,16 @@ export class GameScene extends Phaser.Scene{
       if(_this.diceRoll == 0){
         //I am supposed to play, but will have to forefit since I can't move
         if(supposedToPlay === _this.turnNumber) { 
+          _this.changeInfoText("You rolled a zero")
           console.log("I was supposed to play, but can't")
           _this.freezeGame = true; // I will no longer play
           //like I played a pointless turn
           setTimeout(function() { 
             _this.socket.emit('playedTurn',  -1,-1, _this.turnNumber*-1 + 3); 
           }, 3000);  
-        } 
+        } else {
+          _this.changeInfoText("Other player rolled a zero")
+        }
 
         setTimeout(function() { 
           _this.switchTurn()
@@ -238,13 +251,18 @@ export class GameScene extends Phaser.Scene{
 
       if(_this.noValidMove("white_token") && supposedToPlay === _this.turnNumber) {
         console.log("I can't move and was supposed to play")
+        _this.changeInfoText("You don't have a valid move")
+
         _this.freezeGame = true;
         setTimeout(function() { 
           _this.socket.emit('playedTurn',  -1,-1, _this.turnNumber*-1 + 3); 
+          _this.changeInfoText("Other player plays now")
           _this.switchTurn()
         }, 3000); 
       } else if(_this.noValidMove("black_token")) {
           console.log("Other person was supposed to play but has no valid moves")
+          _this.changeInfoText("Other person has no valid moves")
+
           setTimeout(function() { 
             _this.switchTurn()
           }, 3000); 
@@ -261,15 +279,21 @@ export class GameScene extends Phaser.Scene{
       if( [4,8,14,22,20].includes(squareNowOccupied)){
         _this.freezeGame = true;
         console.log("keeping game frozen since other player moves again")
+        _this.changeInfoText("Other player plays again")
+
       } else {
         _this.freezeGame = false;
         console.log("my turn now")
+        _this.changeInfoText("Your turn")
+
       }
       
     })
 
     _this.socket.on('disconnect', function(playerId) {
       if (playerId !== _this.socket.id){
+        _this.changeInfoText("Other player has disconnected")
+        _this.freezeGame = true;
         console.log("other player has disconnected")  
       }
     })
@@ -434,6 +458,16 @@ export class GameScene extends Phaser.Scene{
               ease: 'Linear',
               onComplete: () => {
                 if(_this.finishedBlacks == 1 || _this.finishedWhites == 1){
+                  if(_this.freezeGame){
+                    if(_this.gameMode === "ONLINEPLAY") _this.changeInfoText("You lost")
+                    
+                  } else {
+                    if(_this.gameMode === "ONLINEPLAY") _this.changeInfoText("You won!")
+                  }
+                  if(_this.gameMode === "LOCALPLAY"){
+                    if(_this.finishedBlacks > _this.finishedWhites) _this.changeInfoText("Black wins!")
+                    else _this.changeInfoText("White wins!")
+                  }
                   _this.finishGame(_this)
                 } else{
                   if(_this.gameMode === "LOCALPLAY") _this.rollDice(_this)
@@ -447,6 +481,8 @@ export class GameScene extends Phaser.Scene{
             if(_this.gameMode === "ONLINEPLAY") {
               if(takeAction && !_this.freezeGame && _this.gameMode === "ONLINEPLAY" ){ //only say a someone moved if it was me.
                 console.log("telling that I have played")
+                _this.changeInfoText("Other player plays now")
+
                 _this.socket.emit('playedTurn',  _this.mirrorMove(boardPos),newPos, _this.turnNumber*-1 + 3)
                 _this.freezeGame = true;
               }
@@ -456,8 +492,15 @@ export class GameScene extends Phaser.Scene{
           } else {
             if(takeAction && !_this.freezeGame && _this.gameMode === "ONLINEPLAY" ){ //only say a someone moved if it was me.
               console.log("telling that I have played, and should play again")
+              _this.changeInfoText("You have another turn")
+
               _this.socket.emit('playedTurn',  _this.mirrorMove(boardPos),newPos, _this.turnNumber)
               // _this.freezeGame = false;
+            }
+            if(_this.gameMode === "LOCALPLAY"){
+              // console.log("hello")
+              if(_this.turnPiece === "white_token") _this.changeInfoText("White plays again")
+              else _this.changeInfoText("Black plays again")
             }
           }
 
@@ -599,7 +642,7 @@ export class GameScene extends Phaser.Scene{
   }
 
   rollDice(_this) { //only run for local plays
-    
+    // this.changeInfoText("New dice...")
     var diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
     
     this.diceRoll = diceValues.reduce((a,b) => a+b,0);
@@ -610,7 +653,10 @@ export class GameScene extends Phaser.Scene{
   
     if(this.diceRoll == 0){
       console.log("ROLLED A ZERO")
-      _this.time.delayedCall(1000, function() {
+      if(_this.turnPiece === "white_token") _this.changeInfoText("White rolled a zero")
+      else _this.changeInfoText("Black rolled a zero")
+
+      _this.time.delayedCall(3000, function() {
         // console.log("RE ROLLING");
         _this.switchTurn();
         _this.rollDice(_this)
@@ -646,11 +692,14 @@ export class GameScene extends Phaser.Scene{
     var toDisactivate
     switch (this.turnPiece) {
       case "white_token": {
+        if(this.gameMode === "LOCALPLAY") this.changeInfoText("Black's turn")
         this.turnPiece = "black_token"; 
         toActivate = this.blackTurnIndicators;
         toDisactivate = this.whiteTurnIndicators;
         break}
       case "black_token": {
+        if(this.gameMode === "LOCALPLAY") this.changeInfoText("White's turn")
+
         this.turnPiece = "white_token"; 
         toActivate = this.whiteTurnIndicators;
         toDisactivate = this.blackTurnIndicators;

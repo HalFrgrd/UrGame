@@ -84,8 +84,8 @@ var gamePlaying = io.of('/gameplay').on('connection', function (socket) {
       
       socket.to(ourRoomKey).emit("startingGame", 1) //only the first person gets this
       socket.emit("startingGame", 2) //only second person gets this
+      rollIndex = 0;
       rollAndSendDice(1)
-      // rollIndex = 0;
 
 
     }
