@@ -8,7 +8,7 @@ export class GameScene extends Phaser.Scene{
 
   }
   init(gameMode) {
-    console.log("GAME IS HERE, with game mode: ", gameMode)
+    console.log("Game scene started with game mode: ", gameMode)
 
     this.gameMode;
     switch(gameMode){
@@ -78,8 +78,6 @@ export class GameScene extends Phaser.Scene{
     this._this;
 
     this.freezeGame;
-    // this.wasIJustPlaying;
-
 
   }
   preload() {
@@ -162,33 +160,7 @@ export class GameScene extends Phaser.Scene{
     this.dice.create(this.gridWidth*9.5,this.gridWidth*2,'dice').setScale(0.4);
     this.dice.create(this.gridWidth*9.5,this.gridWidth*3,'dice').setScale(0.4);
     this.dice.create(this.gridWidth*9.5,this.gridWidth*4,'dice').setScale(0.4);
-    // diceText = this.add.text(12,this.gridWidth*4 ,diceRoll, { fontSize: '32px', fill: '#000' });
 
-    // dicePath1 = new Phaser.Curves.Path(24+48,24);
-    // dicePath1.quadraticBezierTo(48*0.5,48*1.5,48*0.5,48*0.5,);
-    // dicePath1.lineTo(24,48*2.5);
-    // dice.add( this.add.follower(dicePath1, 0, 0,'dice').setScale(0.4));
-    // // dicePath1.draw(graphics);
-
-    // dicePath2 = new Phaser.Curves.Path(24,24);
-    // dicePath2.lineTo(24,48*3.5);
-    // dice.add( this.add.follower(dicePath2, 0, 0,'dice').setScale(0.4));
-
-    // dicePath3 = new Phaser.Curves.Path(24,24+48);
-    // dicePath3.lineTo(24,48*4.5);
-    // dice.add( this.add.follower(dicePath3, 0, 0,'dice').setScale(0.4));
-
-    // dicePath4 = new Phaser.Curves.Path(24,24+48*2);
-    // dicePath4.lineTo(24,48*3.5)
-    // dicePath4.quadraticBezierTo(48*1.5,48*4.5,48*0.5,48*4.5,);
-    // dice.add( this.add.follower(dicePath4, 0, 0,'dice').setScale(0.4));
-    // dicePath4.draw(graphics);
-
-    //initialising text
-    // turnText = this.add.text(this.gridWidth, 300, `turn: ${turnPiece}`, { fontSize: '32px', fill: '#000' });
-
-    //initilising title text
-    // const titleText = this.add.text(this.gridWidth, 20, `Royal Game of Ur`, {fontSize: '40px', fill: '#000'})
 
     //initialising pieces
     this.whitePieces = this.add.group();
@@ -202,11 +174,12 @@ export class GameScene extends Phaser.Scene{
     this.whitePieces.getChildren().forEach( s => s.setScale(0.05))
     this.blackPieces.getChildren().forEach( s => s.setScale(0.05))
 
+    //putting pieces in starting positions
     this.piecesInPos[0]  = this.whitePieces.getChildren();
     this.piecesInPos[16] = this.blackPieces.getChildren();
 
+    //used when hovering mouse over
     this.ghostPieceWhite = this.add.image(0,0,"white_token").setAlpha(0);
-
     this.ghostPieceBlack = this.add.image(0,0,"black_token").setAlpha(0);
     
   }
@@ -214,63 +187,83 @@ export class GameScene extends Phaser.Scene{
   onlineFunctions(_this) {
     _this.socket = io("/gameplay");
     //request to play with friend
-    _this.socket.emit("requestRoomJoin", _this.roomKey, ()=>{})
+    _this.socket.emit("requestRoomJoin", _this.roomKey)
     
      _this.socket.on("startingGame", function (turnNumber) {
-      console.log("starting game as player: ", turnNumber)
-      _this.turnNumber = turnNumber //for later global reference
-      if(turnNumber == 2) {//I shouldn't play, I was second in the room
-        _this.switchTurn(0)
-        _this.freezeGame = true; 
-        // _this.wasIJustPlaying = false;
-      } else{
-        console.log("I have unfrozen game")
-        _this.freezeGame = false; 
-        // _this.wasIJustPlaying = true;
+      _this.turnNumber = turnNumber
 
+      switch (turnNumber) {
+        case 1: {
+          _this.freezeGame = false; 
+          _this.piecesInPos
+          break
+        }
+        case 2: { //I shouldn't play, I was second in the room
+          _this.switchTurn(0)
+          _this.freezeGame = true; 
+          // console.log("trying to move black")
+          // _this.turnPiece = "black_token"
+          // let oldDiceRoll = _this.diceRoll + 1 -1;
+          // _this.diceRoll = 4;
+          // _this.workOutMove(_this,null,true,16,true)
+          // _this.workOutMove(_this,null,true,20,true)
+          // _this.diceRoll = oldDiceRoll;
+          // _this.turnPiece = "white_token"
+
+
+          break;
+        }
       }
     });
 
     _this.socket.on("newDiceRoll", function(diceValues, supposedToPlay){
-      console.log("received new dice vlaues: ", diceValues)
-
-      console.log("am I supposed to play: ", supposedToPlay, _this.turnNumber)
       _this.diceRoll = diceValues.reduce((a,b) => a+b,0);
       _this.animateDice(_this, diceValues)
       
       if(_this.diceRoll == 0){
-        console.log("rolled a zero")
-        
-        if(supposedToPlay === _this.turnNumber) { //I am supposed to play
-          console.log("there was a zero and I was just playing")
+        //I am supposed to play, but will have to forefit since I can't move
+        if(supposedToPlay === _this.turnNumber) { 
+          console.log("I was supposed to play, but can't")
           _this.freezeGame = true; // I will no longer play
+          //like I played a pointless turn
           setTimeout(function() { 
-            _this.socket.emit('playedTurn',  [-1,-1, _this.turnNumber*-1 + 3]); 
-            _this.switchTurn()
-          }, 3000);  //like I played a pointless turn
-        } else{
-          setTimeout(function() { 
-            _this.switchTurn()
+            _this.socket.emit('playedTurn',  -1,-1, _this.turnNumber*-1 + 3); 
           }, 3000);  
-        }
+        } 
 
+        setTimeout(function() { 
+          _this.switchTurn()
+        }, 3000); 
       }
+
+      if(_this.noValidMove("white_token") && supposedToPlay === _this.turnNumber) {
+        console.log("I can't move and was supposed to play")
+        _this.freezeGame = true;
+        setTimeout(function() { 
+          _this.socket.emit('playedTurn',  -1,-1, _this.turnNumber*-1 + 3); 
+          _this.switchTurn()
+        }, 3000); 
+      } else if(_this.noValidMove("black_token")) {
+          console.log("Other person was supposed to play but has no valid moves")
+          setTimeout(function() { 
+            _this.switchTurn()
+          }, 3000); 
+      }
+      
+
+       
       
     })
     
-    _this.socket.on("otherPlayerMoved", function (moveData){ //only when other player moved
-      // _this.wasIJustPlaying = false;
-      _this.workOutMove(_this,null,true,moveData[0],true) //move the piece
-      console.log("received that other player moved")
-      // console.log("opposition moved to: ", moveData[1], [4,8,14,22,20].includes(moveData[1]))      
-      if( [4,8,14,22,20].includes(moveData[1])){
+    _this.socket.on("otherPlayerMoved", function (squareThatWasMoved,squareNowOccupied){
+      _this.workOutMove(_this,null,true,squareThatWasMoved,true) //move the piece
+
+      if( [4,8,14,22,20].includes(squareNowOccupied)){
         _this.freezeGame = true;
         console.log("keeping game frozen since other player moves again")
       } else {
         _this.freezeGame = false;
-        // _this.switchTurn();
         console.log("my turn now")
-        // _this.wasIJustPlaying = true;
       }
       
     })
@@ -280,6 +273,52 @@ export class GameScene extends Phaser.Scene{
         console.log("other player has disconnected")  
       }
     })
+  }
+
+  noValidMove(tokenColor) {
+    var listOfPositions;
+    switch(tokenColor){
+      case "white_token": {
+        for (let i = 0; i < 16; i++) {
+          // there is a white piece in pos i
+          // there is a valid move 
+          if(
+            this.piecesInPos[i].length > 0 && 
+            this.piecesInPos[i][this.piecesInPos[i].length -1].texture.key === "white_token" &&
+            this.possibleMove(i,this.diceRoll,"white_token").length > 0
+            ) {
+              return false
+            }
+    
+        }
+    
+        return true
+
+        
+      }
+      case "black_token": {
+        for(let index = 0; index < [16,17,18,19,20,5,6,7,8,9,10,11,12,21,22].length; index ++ ) {
+          // there is a white piece in pos i
+          // there is a valid move 
+          let i = [16,17,18,19,20,5,6,7,8,9,10,11,12,21,22][index]
+          if(
+            this.piecesInPos[i].length > 0 && 
+            this.piecesInPos[i][this.piecesInPos[i].length -1].texture.key === "black_token" &&
+            this.possibleMove(i,this.diceRoll,"black_token").length > 0
+            ) {
+              return false
+            }
+    
+        }
+    
+        return true
+      } 
+      default:
+      {
+        console.log("Something went wrong")
+      }
+    }
+    
   }
 
   mouseActionFunctions(_this) {
@@ -338,9 +377,7 @@ export class GameScene extends Phaser.Scene{
   workOutMove(_this, pointer, takeAction, boardPos, forceMove = false) {
     if(boardPos === undefined){ //if it wasn't already defined,
       var boardPos = _this.mouseXYtoBoardPos(pointer.x, pointer.y);
-    } else{
-      console.log("given was: ", boardPos)
-    }
+    } 
 
     if(boardPos >= 0 && _this.piecesInPos[boardPos].length > 0 && (!_this.freezeGame || forceMove)){ // on board and on some piece
       
@@ -349,8 +386,7 @@ export class GameScene extends Phaser.Scene{
       var possiblePos = _this.possibleMove(boardPos, _this.diceRoll, colorOfPiece);
       
       if(colorOfPiece == _this.turnPiece && possiblePos.length > 0 ){ //there is a legal move
-        _this.sys.canvas.style.cursor = "pointer"
-        
+        _this.sys.canvas.style.cursor = "pointer"        
         
         const newPos = possiblePos[0]; //the legal move
         if(takeAction){
@@ -411,18 +447,16 @@ export class GameScene extends Phaser.Scene{
             if(_this.gameMode === "ONLINEPLAY") {
               if(takeAction && !_this.freezeGame && _this.gameMode === "ONLINEPLAY" ){ //only say a someone moved if it was me.
                 console.log("telling that I have played")
-                _this.socket.emit('playedTurn',  [_this.mirrorMove(boardPos),newPos, _this.turnNumber*-1 + 3])
+                _this.socket.emit('playedTurn',  _this.mirrorMove(boardPos),newPos, _this.turnNumber*-1 + 3)
                 _this.freezeGame = true;
               }
 
-              // _this.freezeGame = true;
-              // _this.wasIJustPlaying = true;
             }
             
           } else {
             if(takeAction && !_this.freezeGame && _this.gameMode === "ONLINEPLAY" ){ //only say a someone moved if it was me.
               console.log("telling that I have played, and should play again")
-              _this.socket.emit('playedTurn',  [_this.mirrorMove(boardPos),newPos, _this.turnNumber])
+              _this.socket.emit('playedTurn',  _this.mirrorMove(boardPos),newPos, _this.turnNumber)
               // _this.freezeGame = false;
             }
           }
@@ -692,10 +726,6 @@ export class GameScene extends Phaser.Scene{
   }
 
   update() {
-    let i = 0;
-    let c1 = Phaser.Display.Color.HexStringToColor('#ffffff'); // From no tint
-    let c2 = Phaser.Display.Color.HexStringToColor('#ff0000'); // To RED
-    let col = Phaser.Display.Color.Interpolate.ColorWithColor(c1, c2, 100, i);
-    // console.log(col, i)
+    
   }
 }
