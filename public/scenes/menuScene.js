@@ -24,15 +24,20 @@ export class MenuScene extends Phaser.Scene{
       
       ["Play",()=>{} , [
         ["Local play", ()=>{this.scene.launch("GAME", "LOCALPLAY")}, []],
-        ["Against AI",  ()=>{this.scene.launch("GAME", "AIPLAY")} ,[] ],
+        ["Against AI",  ()=>{} ,[
+          ["Coming soon", ()=>{},[]],
+        ]],
         ["Online", ()=>{}, [
           ["Create game",()=>{this.scene.launch("CREATEGAME")} ,[]],
           ["Join a friend's game", ()=>{this.scene.launch("JOINFRIEND")},[]],
           ["Join a random game", ()=>{this.scene.launch("JOINRANDOM")},[]],
         ]]
       ]],
-      ["How to play", ()=>{},[]],
-      ["Dice throwing", ()=>{},[]],
+      ["How to play", ()=>{},[
+        ["Coming soon", ()=>{},[]],
+        ["Meanshiwle google it!", ()=>{},[]]
+      ]],
+      ["Dice throwing", ()=>{this.scene.launch("DICEROLL")},[]],
     ]
 
     new MenuBuilder(this, menuStructure)
@@ -53,7 +58,7 @@ class MenuBuilder {
             console.log(iInside)
             bInside[1](); //do our custom function
             selfInside.buttons.toggleVisible()
-            if(bInside[2].length > 0) { new MenuBuilder(_this, bInside[2], selfInside.buttons) }
+            if(bInside[2].length > 0 ) { new MenuBuilder(_this, bInside[2], selfInside.buttons) }
           }
         )))
       }(i,butt, self)
@@ -68,18 +73,4 @@ class MenuBuilder {
     }
   }
 
-
-  // hideButtons(this, mode){
-  //   this.tweens.add({
-  //     targets: this.buttons.getChildren(),
-  //     x: 1000,
-  //     duration: 300,
-  //     ease: 'Sine',
-  //     onComplete: () => {
-  //       // this.scene.remove()
-  //       this.scene.launch("GAME", mode)
-  //     }
-  //   })
-    
-  // }
 }

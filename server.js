@@ -62,8 +62,9 @@ var gameFinding = io.of('/findgame').on('connection', function (socket){
   
 var inRooms = {}
 
-var rollsForStuck = [4,4,1,4,2,4,4,1,4,2,1,2,1,2,1,1]
-var rollIndex = 0
+
+var rollIndex = 0;
+var rollsForStuck = [4,4,1,4,4,0,0,1,1,1,1]
 
 var gamePlaying = io.of('/gameplay').on('connection', function (socket) {
   console.log('someone joined game play');
@@ -92,7 +93,9 @@ var gamePlaying = io.of('/gameplay').on('connection', function (socket) {
   })
 
   function rollAndSendDice(supposeToPlay) {
-    let diceValues = [rollsForStuck[rollIndex],0,0,0]//[ getRandomInt(0,2) ,getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),];
+    
+    //  let diceValues = [rollsForStuck[rollIndex],0,0,0]
+    let diceValues = [ getRandomInt(0,2) ,getRandomInt(0,2),getRandomInt(0,2),getRandomInt(0,2),];
     // console.log("sending new dice values: ", diceValues);
     rollIndex++
 
@@ -102,7 +105,7 @@ var gamePlaying = io.of('/gameplay').on('connection', function (socket) {
 
 
   socket.on("playedTurn", function (squareThatWasMoved, squareNowOccupied, supposeToPlay ){
-    console.log("someone moved: ", squareThatWasMoved, " to ", squareNowOccupied)
+    // console.log("someone moved: ", squareThatWasMoved, " to ", squareNowOccupied)
     
     //alert otherplayer of this move
     socket.in(ourRoomKey).emit("otherPlayerMoved", squareThatWasMoved,squareNowOccupied) 

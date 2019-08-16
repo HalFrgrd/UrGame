@@ -136,6 +136,7 @@ export class GameScene extends Phaser.Scene{
     //infor rectangles
     this.graphics.lineStyle(1, 0xC2C2C2)
     this.graphics.strokeRoundedRect(this.gridWidth*1,20,this.gridWidth*8,32,4)
+    this.graphics.strokeRoundedRect(this.gridWidth*9,20,this.gridWidth*1,32,4)
     this.infoText = this.add.text(this.gridWidth*1+6+3,20+6,"", {fontSize: '20px', fill: '#666666'})
     if(this.gameMode === "LOCALPLAY") this.changeInfoText("White's turn", 0)
 
@@ -150,10 +151,13 @@ export class GameScene extends Phaser.Scene{
 
     //initialising dice
     this.dice = this.add.group();
-    this.dice.create(this.gridWidth*9.8,this.gridWidth*1,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*9.8,this.gridWidth*2,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*9.8,this.gridWidth*3,'dice').setScale(0.4);
-    this.dice.create(this.gridWidth*9.8,this.gridWidth*4,'dice').setScale(0.4);
+    let xDicePos = this.gridWidth*9.6
+    let yDicePos = this.gridWidth*1.4
+    let yDiceStep = this.gridWidth*1
+    this.dice.create(xDicePos,yDicePos + yDiceStep*0,'dice').setScale(0.4);
+    this.dice.create(xDicePos,yDicePos + yDiceStep*1,'dice').setScale(0.4);
+    this.dice.create(xDicePos,yDicePos + yDiceStep*2,'dice').setScale(0.4);
+    this.dice.create(xDicePos,yDicePos + yDiceStep*3,'dice').setScale(0.4);
 
 
     //initialising pieces
@@ -179,7 +183,7 @@ export class GameScene extends Phaser.Scene{
   }
 
   changeInfoText(newText, duration = 300) {
-    console.log(this.infoText.text)
+    // console.log(this.infoText.text)
     var timeline = this.tweens.createTimeline();
     let _this = this
     timeline.add({
@@ -230,8 +234,11 @@ export class GameScene extends Phaser.Scene{
       _this.diceRoll = diceValues.reduce((a,b) => a+b,0);
       _this.animateDice(_this, diceValues)
       
+      console.log("new dice value: ", _this.diceRoll)
+
       if(_this.diceRoll == 0){
         //I am supposed to play, but will have to forefit since I can't move
+        console.log("A zero was rolled by somone")
         if(supposedToPlay === _this.turnNumber) { 
           _this.changeInfoText("You rolled a zero")
           console.log("I was supposed to play, but can't")
@@ -245,27 +252,29 @@ export class GameScene extends Phaser.Scene{
         }
 
         setTimeout(function() { 
+          _this.changeInfoText("Other player's turn now")
           _this.switchTurn()
         }, 3000); 
-      }
 
-      if(_this.noValidMove("white_token") && supposedToPlay === _this.turnNumber) {
-        console.log("I can't move and was supposed to play")
-        _this.changeInfoText("You don't have a valid move")
+      } else {
+          if(_this.noValidMove("white_token") && supposedToPlay === _this.turnNumber) {
+          console.log("I can't move and was supposed to play")
+          _this.changeInfoText("You don't have a valid move")
 
-        _this.freezeGame = true;
-        setTimeout(function() { 
-          _this.socket.emit('playedTurn',  -1,-1, _this.turnNumber*-1 + 3); 
-          _this.changeInfoText("Other player plays now")
-          _this.switchTurn()
-        }, 3000); 
-      } else if(_this.noValidMove("black_token")) {
-          console.log("Other person was supposed to play but has no valid moves")
-          _this.changeInfoText("Other person has no valid moves")
-
+          _this.freezeGame = true;
           setTimeout(function() { 
+            _this.socket.emit('playedTurn',  -1,-1, _this.turnNumber*-1 + 3); 
+            _this.changeInfoText("Other player plays now")
             _this.switchTurn()
           }, 3000); 
+          } else if(_this.noValidMove("black_token") && supposedToPlay !== _this.turnNumber) {
+            console.log("Other person was supposed to play but has no valid moves")
+            _this.changeInfoText("Other person has no valid moves")
+
+            setTimeout(function() { 
+              _this.switchTurn()
+            }, 3000); 
+        }
       }
       
 
@@ -274,6 +283,7 @@ export class GameScene extends Phaser.Scene{
     })
     
     _this.socket.on("otherPlayerMoved", function (squareThatWasMoved,squareNowOccupied){
+      console.log("other player moved: ", squareThatWasMoved, squareNowOccupied)
       _this.workOutMove(_this,null,true,squareThatWasMoved,true) //move the piece
 
       if( [4,8,14,22,20].includes(squareNowOccupied)){
@@ -321,10 +331,11 @@ export class GameScene extends Phaser.Scene{
         
       }
       case "black_token": {
-        for(let index = 0; index < [16,17,18,19,20,5,6,7,8,9,10,11,12,21,22].length; index ++ ) {
+        let blackPositions = [16,17,18,19,20,5,6,7,8,9,10,11,12,21,22,23]
+        for(let index = 0; index < blackPositions.length; index ++ ) {
           // there is a white piece in pos i
           // there is a valid move 
-          let i = [16,17,18,19,20,5,6,7,8,9,10,11,12,21,22][index]
+          let i = blackPositions[index]
           if(
             this.piecesInPos[i].length > 0 && 
             this.piecesInPos[i][this.piecesInPos[i].length -1].texture.key === "black_token" &&
@@ -457,7 +468,7 @@ export class GameScene extends Phaser.Scene{
               duration: 200,
               ease: 'Linear',
               onComplete: () => {
-                if(_this.finishedBlacks == 1 || _this.finishedWhites == 1){
+                if(_this.finishedBlacks == 7 || _this.finishedWhites == 7){
                   if(_this.freezeGame){
                     if(_this.gameMode === "ONLINEPLAY") _this.changeInfoText("You lost")
                     
@@ -642,9 +653,8 @@ export class GameScene extends Phaser.Scene{
   }
 
   rollDice(_this) { //only run for local plays
-    // this.changeInfoText("New dice...")
     var diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
-    
+ 
     this.diceRoll = diceValues.reduce((a,b) => a+b,0);
   
     this.animateDice(_this,diceValues)
@@ -661,7 +671,14 @@ export class GameScene extends Phaser.Scene{
         _this.switchTurn();
         _this.rollDice(_this)
       }, [], _this);
+    } else if(this.noValidMove(this.turnPiece)){
+      if(this.turnPiece === "white_token") this.changeInfoText("White has no valid moves")
+      else this.changeInfoText("Black has no valid moves")
+      setTimeout(function() { 
+        _this.switchTurn()
+      }, 3000); 
     }
+
   }
 
   tweenColor(shapeToTween, startColor, endColor, duration) {

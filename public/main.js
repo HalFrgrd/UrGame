@@ -3,6 +3,7 @@ import {MenuScene} from "/scenes/menuScene.js";
 import {JoinFriendScene} from "/scenes/joinFriendScene.js";
 import {JoinRandomScene} from "/scenes/joinRandomScene.js";
 import { CreateGameScene } from "./scenes/createGame.js";
+import { DiceRollScene } from "./scenes/diceRollScene.js";
 
 let game = new Phaser.Game({
   width: 800,
@@ -11,7 +12,7 @@ let game = new Phaser.Game({
   parent: 'game', //reference to index.html div
   backgroundColor: '#FAF8EF',
   scene: [
-    MenuScene, GameScene, JoinFriendScene, JoinRandomScene, CreateGameScene
+    MenuScene, GameScene, JoinFriendScene, JoinRandomScene, CreateGameScene, DiceRollScene
   ],
   scale: {
     mode: Phaser.Scale.RESIZE,
