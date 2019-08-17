@@ -24,8 +24,8 @@ export class MenuScene extends Phaser.Scene{
       
       ["Play",()=>{} , [
         ["Local play", ()=>{this.scene.launch("GAME", "LOCALPLAY")}, []],
-        ["Against AI",  ()=>{} ,[
-          ["Coming soon", ()=>{},[]],
+        ["Against AI",  ()=>{this.scene.launch("GAME", "AIPLAY")} ,[
+          
         ]],
         ["Online", ()=>{}, [
           ["Create game",()=>{this.scene.launch("CREATEGAME")} ,[]],

@@ -22,7 +22,7 @@ export class JoinFriendScene extends Phaser.Scene{
 
     this.inputText;
 
-    this.add.existing(new TextButton(this, 400, 360, "Enter code and join", ()=>{
+    function useCode(){
       // console.log(self.getChildByName('codeForm').value)
       if(self.inputText !== undefined){ 
         console.log(self.inputText.value)
@@ -41,13 +41,17 @@ export class JoinFriendScene extends Phaser.Scene{
 
       }
       else {console.log("nothing in input box yet")}
-    }))  
+    }
+
+    this.add.existing(new TextButton(this, 400, 360, "Enter code and join", ()=>{useCode()}))  
+    this.input.keyboard.addKey("ENTER").on('down', function(event){useCode()})
 
     inputBox.addListener('click');
     inputBox.on('click', function (event) {
       self.inputText = this.getChildByName('codeFormInput');
       // console.log("updating input text", self.inputText.value)
     })
+
 
 
   }

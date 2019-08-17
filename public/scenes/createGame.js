@@ -16,17 +16,20 @@ export class CreateGameScene extends Phaser.Scene{
 
     this.socket = io('/findgame');
     var self = this
-    self.add.dom(400, 360, 'div', 'text-align: center; width: 180px; height: 32px; font: 16px Arial; color: black;', 'Share code with friend');
-    
-    
+    // self.add.dom(400, 360, 'div', 'text-align: center; width: 180px; height: 32px; font: 16px Arial; color: black;', 'Share code with friend');
+
+    // this.add.text(280,230,'Share code with friend', {fontSize: '20px', fill: '#666666'})
+
+    this.add.existing(new TextButton(this,400,300,'Share code with friend',()=>{}))
+
 
     this.socket.emit("gameCodeRequest", function (code) {
       console.log("we ave this code: ", code)
-      self.add.existing(new TextButton(self, 400, 300 , '', 
+      self.add.dom(400, 355, 'div', 'text-align: center; width: 180px; height: 32px; font: 32px Arial; color: white;', code);
+      self.add.existing(new TextButton(self, 400, 360 , '', 
       ()=>{
         console.log("trying to get inpout")
-       
-        self.add.dom(400, 300, 'div', 'text-align: center; width: 180px; height: 32px; font: 32px Arial; color: white;', code);
+    
 
       } 
     ))

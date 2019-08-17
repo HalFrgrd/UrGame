@@ -1,5 +1,6 @@
 import {TextButton} from "./textbutton.js";
 import {GameModel} from "./gameModel.js"
+import {AIModel} from "./aiModel.js"
 
 export class GameScene extends Phaser.Scene{
   constructor() {
@@ -14,7 +15,11 @@ export class GameScene extends Phaser.Scene{
     this.gameMode;
     switch(gameMode){
       case "LOCALPLAY": {this.gameMode = gameMode; break;}
-      case "AIPLAY": {this.gameMode = gameMode; break;}
+      case "AIPLAY": {
+        this.gameMode = gameMode; 
+        this.aiModel;
+        break;
+      }
       default: {
         this.gameMode = gameMode[0]; 
         this.roomKey = gameMode[1];
@@ -31,7 +36,7 @@ export class GameScene extends Phaser.Scene{
     //Geometry
     this.gridWidth = 60;
 
-    this.shiftX = 400-(this.gridWidth*10)/2;
+    this.shiftX = 400-(this.gridWidth*12)/2;
     this.shiftY = 150;
 
 
@@ -74,6 +79,8 @@ export class GameScene extends Phaser.Scene{
 
 
     this.urGame;
+
+
 
     this.diceIndex = 0;
     this.diceRollsForStuck = [4,4,1,4,4,1,1,1]
@@ -131,10 +138,10 @@ export class GameScene extends Phaser.Scene{
 
     //infor rectangles
     this.graphics.lineStyle(1, 0xC2C2C2)
-    this.graphics.strokeRoundedRect(this.gridWidth*1,20,this.gridWidth*8,32,4)
-    this.graphics.strokeRoundedRect(this.gridWidth*9,20,this.gridWidth*1,32,4)
-    this.infoText = this.add.text(this.gridWidth*1+6+3,20+6,"", {fontSize: '20px', fill: '#666666'})
-    if(this.gameMode === "LOCALPLAY") this.changeInfoText("White's turn", 0)
+    this.graphics.strokeRoundedRect(this.gridWidth*1,15,this.gridWidth*8,32,4)
+    this.graphics.strokeRoundedRect(this.gridWidth*9+8,15,this.gridWidth*2-8,32,4)
+    this.infoText = this.add.text(this.gridWidth*1+6+3,15+6,"", {fontSize: '20px', fill: '#666666'})
+    this.diceText = this.add.text(this.gridWidth*10-3,15+6,"", {fontSize: '20px', fill: '#666666'})
 
     this.add.image(this.gridWidth*2.5,this.gridWidth*1.5,'rosette').setScale(0.2);
     this.add.image(this.gridWidth*2.5,this.gridWidth*3.5,'rosette').setScale(0.2);
@@ -148,12 +155,16 @@ export class GameScene extends Phaser.Scene{
     //initialising dice
     this.dice = this.add.group();
     let xDicePos = this.gridWidth*9.6
-    let yDicePos = this.gridWidth*1.4
-    let yDiceStep = this.gridWidth*1
+    let yDicePos = this.gridWidth*1.8
+    let yDiceStep = this.gridWidth*1.4
+    let xDiceStep = this.gridWidth*1
     this.dice.create(xDicePos,yDicePos + yDiceStep*0,'dice').setScale(0.4);
     this.dice.create(xDicePos,yDicePos + yDiceStep*1,'dice').setScale(0.4);
-    this.dice.create(xDicePos,yDicePos + yDiceStep*2,'dice').setScale(0.4);
-    this.dice.create(xDicePos,yDicePos + yDiceStep*3,'dice').setScale(0.4);
+    this.dice.create(xDicePos+xDiceStep,yDicePos + yDiceStep*0,'dice').setScale(0.4);
+    this.dice.create(xDicePos+xDiceStep,yDicePos + yDiceStep*1,'dice').setScale(0.4);
+
+    this.pieceScaleOnBoard = 0.15
+    this.pieceScaleOffBoard = 0.05
 
 
     //initialising pieces
@@ -165,8 +176,8 @@ export class GameScene extends Phaser.Scene{
       this.blackPieces.create(coord[0] + 4*this.gridWidth,coord[1] + 1*this.gridWidth, "black_piece");
     }
 
-    this.whitePieces.getChildren().forEach( s => s.setScale(0.05))
-    this.blackPieces.getChildren().forEach( s => s.setScale(0.05))
+    this.whitePieces.getChildren().forEach( s => s.setScale(this.pieceScaleOffBoard))
+    this.blackPieces.getChildren().forEach( s => s.setScale(this.pieceScaleOffBoard))
 
 
     //used when hovering mouse over
@@ -189,6 +200,26 @@ export class GameScene extends Phaser.Scene{
     })
     timeline.add({
       targets: _this.infoText,
+      alpha: 1,
+      duration: duration,
+      offset: duration,
+    })
+    timeline.play();
+  }
+
+  changeDiceText(newText, duration = 300) {
+    var timeline = this.tweens.createTimeline();
+    let _this = this
+    timeline.add({
+      targets: _this.diceText,
+      alpha: 0,
+      duration: duration,
+      onComplete: ()=>{
+        _this.diceText.text = newText
+      }
+    })
+    timeline.add({
+      targets: _this.diceText,
       alpha: 1,
       duration: duration,
       offset: duration,
@@ -252,16 +283,21 @@ export class GameScene extends Phaser.Scene{
   mouseActionFunctions() {
     var _this = this
 
+    function whoPlayed() {
+      if(_this.gameMode == "ONLINEPLAY") return "white"
+      if(_this.gameMode == "LOCALPLAY") return "UNSURE"
+      if(_this.gameMode == "AIPLAY") return "white"
+    }
+
     //action to take on pointer down
     this.input.on('pointerdown', function (pointer){
       
       _this.ghostPieceWhite.setAlpha(0);
       _this.ghostPieceBlack.setAlpha(0);
-      let whoPlayed = (_this.gameMode == "ONLINEPLAY" ) ? "white" : "UNSURE"
       let boardPos = _this.mouseXYtoBoardPos(pointer.x, pointer.y)
       // console.log("who played mouse: ", whoPlayed)
 
-      _this.urGame.workOutMove( boardPos , whoPlayed, true )  
+      _this.urGame.workOutMove( boardPos , whoPlayed(), true )  
     });
 
     this.input.on('pointerup', () => {
@@ -279,11 +315,10 @@ export class GameScene extends Phaser.Scene{
         _this.hoveringOnPiece = newHoveringOnPiece
 
         
-        let whoPlayed = (_this.gameMode == "ONLINEPLAY" ) ? "white" : "UNSURE"
         // console.log("who played mouse: ", whoPlayed)
         let boardPos = _this.mouseXYtoBoardPos(pointer.x, pointer.y)
 
-        _this.urGame.workOutMove( boardPos , whoPlayed, false )  
+        _this.urGame.workOutMove( boardPos , whoPlayed(), false )  
       }
     })
   }
@@ -331,8 +366,8 @@ export class GameScene extends Phaser.Scene{
             targets: change['object'],
             x: newCoordinates[0],
             y: newCoordinates[1],
-            scaleX: (([0,15,16,23].includes( change['to'] )) ? 0.05 :0.2),
-            scaleY: (([0,15,16,23].includes( change['to'] )) ? 0.05 :0.2),
+            scaleX: (([0,15,16,23].includes( change['to'] )) ? this.pieceScaleOffBoard :this.pieceScaleOnBoard),
+            scaleY: (([0,15,16,23].includes( change['to'] )) ? this.pieceScaleOffBoard :this.pieceScaleOnBoard),
             duration: 200,
             ease: 'Linear',
           });
@@ -343,13 +378,13 @@ export class GameScene extends Phaser.Scene{
             case "white_piece": {
               this.ghostPieceWhite.x = newCoordinates[0]
               this.ghostPieceWhite.y = newCoordinates[1]
-              this.ghostPieceWhite.setScale((([0,15].includes(change['to']) ) ? 0.05 :0.2)).setAlpha(0.6)
+              this.ghostPieceWhite.setScale((([0,15].includes(change['to']) ) ? this.pieceScaleOffBoard :this.pieceScaleOnBoard)).setAlpha(0.6)
               break;
             }
             case "black_piece": {
               this.ghostPieceBlack.x = newCoordinates[0]
               this.ghostPieceBlack.y = newCoordinates[1]
-              this.ghostPieceBlack.setScale((([16,23].includes(change['to'])) ? 0.05 :0.2)).setAlpha(0.6)
+              this.ghostPieceBlack.setScale((([16,23].includes(change['to'])) ? this.pieceScaleOffBoard :this.pieceScaleOnBoard)).setAlpha(0.6)
               break;
             }
           }
@@ -372,6 +407,27 @@ export class GameScene extends Phaser.Scene{
     this.socket.emit("readyForDice")
   }
 
+  letAiKnowSomethingChanged(){
+    console.log("letting ai know something changed")
+
+    var _this = this
+    setTimeout(function() { 
+      console.log("letting ai know something changed")
+      _this.aiModel.calculateMove(_this.urGame)
+    },1000); 
+   
+   
+    
+  }
+
+  AIMakesMove(movePos){
+    var _this = this
+    setTimeout(function() { 
+      console.log("ai has made move: ", movePos)
+      _this.urGame.workOutMove(movePos,"black",true)
+    },1000); 
+  }
+
   initaliseGameModel(){
     switch (this.gameMode){
       case "LOCALPLAY": {
@@ -381,6 +437,7 @@ export class GameScene extends Phaser.Scene{
           this.movePiecesFromChanges.bind(this),
           ()=>{},
           this.animateDice.bind(this),
+          this.playAgainUpdate.bind(this),
           this.rolledZeroUpdate.bind(this),
           this.noValidMovesUpdate.bind(this),
           this.finishGame.bind(this),
@@ -399,6 +456,7 @@ export class GameScene extends Phaser.Scene{
           this.movePiecesFromChanges.bind(this),
           this.sendMoveToServer.bind(this),
           this.animateDice.bind(this),
+          this.playAgainUpdate.bind(this),
           this.rolledZeroUpdate.bind(this),
           this.noValidMovesUpdate.bind(this),
           this.finishGame.bind(this),
@@ -406,6 +464,24 @@ export class GameScene extends Phaser.Scene{
           this.blackPieces.getChildren(),
           false,
           (this.turnNumber == 1) ? "white" : "black"
+          )
+          break;
+      }
+      case "AIPLAY": {
+        this.urGame = new GameModel(
+          this.switchTurn.bind(this),
+          this.letAiKnowSomethingChanged.bind(this),
+          this.movePiecesFromChanges.bind(this),
+          ()=>{},
+          this.animateDice.bind(this),
+          this.playAgainUpdate.bind(this),
+          this.rolledZeroUpdate.bind(this),
+          this.noValidMovesUpdate.bind(this),
+          this.finishGame.bind(this),
+          this.whitePieces.getChildren(),
+          this.blackPieces.getChildren(),
+          true,
+          "white"
           )
           break;
       }
@@ -420,9 +496,6 @@ export class GameScene extends Phaser.Scene{
     this.drawGraphics()
     this.addDiceAndPieces()
 
-    
-    
-
     //set up for server communication and game starting
     if(this.gameMode === "ONLINEPLAY" ){
       this.onlineFunctions();
@@ -430,6 +503,8 @@ export class GameScene extends Phaser.Scene{
 
     if(this.gameMode === "LOCALPLAY"){
       this.initaliseGameModel();
+      this.changeInfoText("White's turn", 0)
+
 
       this.urGame.beginGame();
 
@@ -437,17 +512,26 @@ export class GameScene extends Phaser.Scene{
       this.mouseActionFunctions();
     }
 
-    
+    if(this.gameMode === "AIPLAY"){
+      this.initaliseGameModel();
+      this.aiModel = new AIModel(this.AIMakesMove.bind(this))
+      this.changeInfoText("Your turn", 0)
 
+      this.urGame.beginGame();
+
+      //set up for reactions on mouse movement and clicks
+      this.mouseActionFunctions();
+    }
+
+  
     
 
   }
 
 
-
   finishGame() {
 
-    if(this.gameMode == "ONLINEPLAY"){
+    if(this.gameMode == "ONLINEPLAY" || this.gameMode == "AIPLAY"){
       if(this.urGame.currentPlayer == "white") this.changeInfoText("You won!")
       else this.changeInfoText("You lost")
     }
@@ -457,11 +541,16 @@ export class GameScene extends Phaser.Scene{
       else this.changeInfoText("Black won!")
     }
 
+
     let buttons = this.add.group()
     buttons.add(this.add.existing(new TextButton(this, 400-this.shiftX, 280-this.shiftY, "Play Again", ()=>{
 
-      this.socket.disconnect()
-      this.scene.restart([this.gameMode,this.roomKey])
+      if(this.gameMode == "ONLINEPLAY"){
+        this.socket.disconnect()
+        this.scene.restart([this.gameMode,this.roomKey])
+      } else {
+        this.scene.restart(this.gameMode)
+      }
  
 
     })).setAlpha(0))
@@ -519,6 +608,9 @@ export class GameScene extends Phaser.Scene{
       i++
     });
     diceTimeline.play()
+
+    this.changeDiceText(diceValues.reduce((a,b)=>a+b,0))
+
   }
 
   rolledZeroUpdate(){
@@ -531,6 +623,10 @@ export class GameScene extends Phaser.Scene{
     if(this.gameMode == "LOCALPLAY"){
       if(this.urGame.currentPlayer === "white") this.changeInfoText("White rolled a zero")
       else this.changeInfoText("Black rolled a zero")
+    }
+    if(this.gameMode == "AIPLAY"){
+      if(this.urGame.currentPlayer === "white") this.changeInfoText("You rolled a zero")
+      else this.changeInfoText("Computer rolled a zero")
     }
     
   }
@@ -548,6 +644,32 @@ export class GameScene extends Phaser.Scene{
       if(this.urGame.currentPlayer === "white") this.changeInfoText("White has no valid moves")
       else this.changeInfoText("Black has no valid moves")
     }
+
+    if(this.gameMode == "AIPLAY"){
+      if(this.urGame.currentPlayer === "white") this.changeInfoText("You have no valid moves")
+      else this.changeInfoText("Computer has no valid moves")
+    }
+    
+  }
+
+  playAgainUpdate() {
+
+    if(this.gameMode == "ONLINEPLAY") {
+      if(this.urGame.currentPlayer === "white") {
+        this.changeInfoText("You have another turn")
+      }
+      else this.changeInfoText("Other player has another turn")
+    }
+
+    if(this.gameMode == "LOCALPLAY"){
+      if(this.urGame.currentPlayer === "white") this.changeInfoText("White plays again")
+      else this.changeInfoText("Black plays again")
+    }
+
+    if(this.gameMode == "AIPLAY"){
+      if(this.urGame.currentPlayer === "white") this.changeInfoText("You have another turn")
+      else this.changeInfoText("Computer plays again")
+    }
     
   }
 
@@ -560,6 +682,7 @@ export class GameScene extends Phaser.Scene{
         console.log("Switching from white to blakc")
         if(this.gameMode === "LOCALPLAY") this.changeInfoText("Black's turn")
         if(this.gameMode === "ONLINEPLAY") this.changeInfoText("Other player's turn")
+        if(this.gameMode === "AIPLAY") this.changeInfoText("Computer's turn")
         toActivate = this.blackTurnIndicators;
         toDisactivate = this.whiteTurnIndicators;
         break}
@@ -567,6 +690,7 @@ export class GameScene extends Phaser.Scene{
         console.log("Switching from black to white")
         if(this.gameMode === "LOCALPLAY") this.changeInfoText("White's turn")
         if(this.gameMode === "ONLINEPLAY") this.changeInfoText("Your turn")
+        if(this.gameMode === "AIPLAY") this.changeInfoText("Your turn")
         toActivate = this.whiteTurnIndicators;
         toDisactivate = this.blackTurnIndicators;
         break}
@@ -609,9 +733,6 @@ export class GameScene extends Phaser.Scene{
 
 
   };
-  
-  
-  
   
   mouseXYtoBoardPos(pointx,pointy) {
     let x = Math.floor(((pointx-this.shiftX)-this.gridWidth)/this.gridWidth);

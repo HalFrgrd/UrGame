@@ -20,6 +20,7 @@ export class GameModel{
     updatePiecesCallback,
     sendMainClickCallback,
     rolledDiceCallback,
+    playAgainCallback,
     rolledZeroCallback,
     noValidMovesCallback,
     gameFinishCallback,
@@ -33,6 +34,7 @@ export class GameModel{
     this.updatePieceCallback = updatePiecesCallback
     this.sendMainClickCallback = sendMainClickCallback
     this.rolledDiceCallback = rolledDiceCallback;
+    this.playAgainCallback = playAgainCallback
     this.rolledZeroCallback = rolledZeroCallback;
     this.noValidMovesCallback = noValidMovesCallback;
     this.gameFinishedCallback = gameFinishCallback;
@@ -108,10 +110,26 @@ export class GameModel{
           return true
         }
     }
-    
   }
 
-  workOutMove(boardPos, whoPlayed, takeAction) {
+  allPossibleMoves(whoIsPlaying){
+    var possMoves = []
+
+    for (let i = 0; i < 24; i++) {
+      // there is a whoIsPlaying piece in pos i
+      // there is a valid move
+      if(
+        this.piecesInPos[i].length > 0 && 
+        this.piecesInPos[i][this.piecesInPos[i].length -1]['color'] === whoIsPlaying &&
+        this.possibleMove(i,this.diceRoll,whoIsPlaying).length > 0
+        ) {
+          possMoves.push(i)
+        }
+    }
+    return possMoves
+  }
+
+  workOutMove(boardPos, whoPlayed, takeAction, sendInfoToHuman = true) {
     var _this = this
 
     if(
@@ -138,11 +156,12 @@ export class GameModel{
           //update our knowledge of where the piece is
           this.piecesInPos[newPos].push(this.piecesInPos[boardPos].pop());
           
-          if( [15,23].includes(newPos) &&  this.piecesInPos[newPos].length == 1){
+          if( [15,23].includes(newPos) &&  this.piecesInPos[newPos].length == 7){
             this.acceptInput = false;
             this.gameFinishedCallback();
           } else {
             //Change the turn
+            if([4,8,14,22,20].includes(newPos)) this.playAgainCallback()
             this.finishTurn(![4,8,14,22,20].includes(newPos)) // finish the turn and maybe switch turn
           }
 
@@ -171,7 +190,8 @@ export class GameModel{
           if(takeAction) _this.piecesInPos[(removedPiece['color'] == "white") ? 0 : 16 ].push(removedPiece)
         }
 
-        this.updatePieceCallback(changes) //Just visuals pretty much
+        if(sendInfoToHuman) this.updatePieceCallback(changes) //Just visuals pretty much
+        return changes
 
       }
     }
@@ -189,10 +209,11 @@ export class GameModel{
   rollDice() { //only run for local plays
     var diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
  
+
     this.rolledDiceCallback(diceValues)
 
     this.diceRoll = diceValues.reduce((a,b) => a+b,0);
-    console.log(this.diceRoll)
+    // console.log(this.diceRoll)
 
     this.checkIfPlayShouldProceedNormally()
     
