@@ -17,7 +17,7 @@ export class MenuScene extends Phaser.Scene{
     
 
 
-    this.add.text(400, 100,  "Royal Game of Ur", { fontSize: '70px', fill: '#000', align: 'right', fontFamily: 'Open Sans', fontStyle: 'bold' }).setOrigin(0.5)
+    this.add.text(400, 100,  "Royal Game of Ur", { fontSize: '70px', fill: '#000', align: 'right', fontFamily: 'Helvetica', fontStyle: 'bold' }).setOrigin(0.5)
 
     
     let menuStructure = [

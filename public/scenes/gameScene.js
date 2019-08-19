@@ -72,6 +72,7 @@ export class GameScene extends Phaser.Scene{
 
     this.activatedColor = '0xCE93D8';
     this.unactivatedColor = '0x904CAA';
+    this.unactiveAlpha = 0.2
 
     this.infoText;
 
@@ -87,10 +88,10 @@ export class GameScene extends Phaser.Scene{
 
   }
   preload() {
-    this.load.svg('black_piece', 'assets/black_token.svg');
-    this.load.svg('white_piece', 'assets/white_token.svg');
+    this.load.svg('black_piece', 'assets/black_token2.svg');
+    this.load.svg('white_piece', 'assets/white_token2.svg');
     this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
-    this.load.svg('rosette','assets/rosette2.svg');
+    this.load.svg('rosette','assets/rosette4.svg');
 
     this.load.plugin('rexroundrectangleplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/plugins/dist/rexroundrectangleplugin.min.js', true);      
     
@@ -114,8 +115,8 @@ export class GameScene extends Phaser.Scene{
     this.whiteTurnIndicators = this.add.group()
 
     
-    this.blackTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*5,this.gridWidth*2,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.unactivatedColor)).setDepth(-1));
-    this.blackTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.unactivatedColor)).setDepth(-1));
+    this.blackTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*5,this.gridWidth*2,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1).setAlpha(this.unactiveAlpha));
+    this.blackTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1).setAlpha(this.unactiveAlpha));
 
     this.whiteTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*3,this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1));
     this.whiteTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*5,this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1));
@@ -140,8 +141,8 @@ export class GameScene extends Phaser.Scene{
     this.graphics.lineStyle(1, 0xC2C2C2)
     this.graphics.strokeRoundedRect(this.gridWidth*1,15,this.gridWidth*8,32,4)
     this.graphics.strokeRoundedRect(this.gridWidth*9+8,15,this.gridWidth*2-8,32,4)
-    this.infoText = this.add.text(this.gridWidth*1+6+3,15+6,"", {fontSize: '20px', fill: '#666666'})
-    this.diceText = this.add.text(this.gridWidth*10-3,15+6,"", {fontSize: '20px', fill: '#666666'})
+    this.infoText = this.add.text(this.gridWidth*1+6+3,15+6,"", {fontSize: '20px', fill: '#666666',fontFamily: "Courier"})
+    this.diceText = this.add.text(this.gridWidth*10-3,15+6,"", {fontSize: '20px', fill: '#666666', fontFamily: "Courier"})
 
     this.add.image(this.gridWidth*2.5,this.gridWidth*1.5,'rosette').setScale(0.2);
     this.add.image(this.gridWidth*2.5,this.gridWidth*3.5,'rosette').setScale(0.2);
@@ -699,9 +700,24 @@ export class GameScene extends Phaser.Scene{
     // console.log(this.unactivatedColor)  
     toActivate.getChildren().forEach(r=>{
       this.tweenColor(r,this.unactivatedColor,this.activatedColor,duration)
+      this.tweens.add({
+        targets: r,
+        alpha: 1,
+        ease: "Cubic.easeIn",
+        duration: duration,
+      })
     })
     toDisactivate.getChildren().forEach(r=>{
       this.tweenColor(r,this.activatedColor,this.unactivatedColor,duration)
+      this.tweens.add({
+        targets: r,
+        alpha: this.unactiveAlpha,
+        // ease: "Cubic.easeOut",
+        duration: duration,
+
+
+      })
+
     })
 
   }

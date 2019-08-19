@@ -4,7 +4,7 @@ export class TextButton extends Phaser.GameObjects.Container {
     super(scene);
     this.button = scene.add.sprite(x, y, "button",0).setDepth(0);
     this.button.scaleX = xScale;
-    var text = scene.add.text(x,y ,text, { fontSize: '16px', fill: '#FFFFFF', align: 'right', fontFamily: 'Open Sans', fontStyle: 'bold' }).setDepth(1);
+    var text = scene.add.text(x,y ,text, { fontSize: '16px', fill: '#FFFFFF', align: 'right', fontFamily: 'Helvetica', fontStyle: 'bold' }).setDepth(1);
     text.setOrigin(0.5)
     this.add(this.button)
     this.add(text)

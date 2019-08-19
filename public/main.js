@@ -11,6 +11,7 @@ let game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game', //reference to index.html div
   backgroundColor: '#FAF8EF',
+  // pixelArt: true,
   scene: [
     MenuScene, GameScene, JoinFriendScene, JoinRandomScene, CreateGameScene, DiceRollScene
   ],
