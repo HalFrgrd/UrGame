@@ -70,9 +70,9 @@ export class GameScene extends Phaser.Scene{
     this.blackTurnIndicators;
     this.whiteTurnIndicators;
 
-    this.activatedColor = '0xCE93D8';
-    this.unactivatedColor = '0x904CAA';
-    this.unactiveAlpha = 0.2
+    this.activatedColor = '0xFF5722'//'0xCE93D8';
+    this.unactivatedColor =  '0xFF5722'//'0x904CAA';
+    this.unactiveAlpha = 0.3
 
     this.infoText;
 
@@ -91,7 +91,7 @@ export class GameScene extends Phaser.Scene{
     this.load.svg('black_piece', 'assets/black_token2.svg');
     this.load.svg('white_piece', 'assets/white_token2.svg');
     this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
-    this.load.svg('rosette','assets/rosette4.svg');
+    this.load.svg('rosette','assets/rosette4red.svg');
 
     this.load.plugin('rexroundrectangleplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/plugins/dist/rexroundrectangleplugin.min.js', true);      
     

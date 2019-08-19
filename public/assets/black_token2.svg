@@ -21,19 +21,6 @@
     <filter
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
-       id="filter1023"
-       x="-0.033595027"
-       width="1.0671901"
-       y="-0.038775854"
-       height="1.0775517">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.71109472"
-         id="feGaussianBlur1025" />
-    </filter>
-    <filter
-       inkscape:collect="always"
-       style="color-interpolation-filters:sRGB"
        id="filter1089"
        x="-0.048"
        width="1.096"
@@ -53,7 +40,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.979899"
-     inkscape:cx="22.365391"
+     inkscape:cx="-67.285647"
      inkscape:cy="94.947827"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -88,7 +75,7 @@
      id="layer1"
      transform="translate(0,-246.19998)">
     <circle
-       style="opacity:0.97000002;fill:#46433f;fill-opacity:1;stroke:#46433f;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.80000019;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill;filter:url(#filter1089)"
+       style="opacity:1;fill:#46433f;fill-opacity:1;stroke:#46433f;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4.80000019;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill;filter:url(#filter1089)"
        id="path1027"
        cx="25.4"
        cy="271.59998"
