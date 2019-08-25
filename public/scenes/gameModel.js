@@ -102,6 +102,8 @@ export class GameModel{
     else if( !this.thereIsAValidMove(this.currentPlayer) ) {
       console.log("starting calling a no valid moves callback")
       this.noValidMovesCallback()
+      console.log("finished calling a no valid moves callback")
+
       var _this = this
 
       setTimeout(function() { 
@@ -111,11 +113,12 @@ export class GameModel{
       }, 3000); 
 
     }else {
-      console.log("letting ai look: ", this.currentPlayer)
+      console.log("should play, letting ai look: ", this.currentPlayer)
       this.letAiLookCallback()
       
     }
 
+    console.log("waiting here")
     
     
 
@@ -178,7 +181,8 @@ export class GameModel{
   }
 
   exportGameState(){
-    // console.log(this.piecesInPos)
+
+    console.log("exporting game state")
     return {
       // board: this.piecesInPos.map(pos =>  pos.map(piece => {
       //     // console.log(piece['color'])
@@ -277,7 +281,11 @@ export class GameModel{
     // var diceValues = [this.diceRolls[this.diceIndex],0,0,0]
     // this.diceIndex++
 
+    console.log("starting rolled dice callback")
+
     this.rolledDiceCallback(diceValues)
+    console.log("finished rolled dice callback")
+
 
     this.diceRoll = diceValues.reduce((a,b) => a+b,0);
     // console.log(this.diceRoll)
@@ -295,18 +303,24 @@ export class GameModel{
       case "white": { this.currentPlayer = "black"; break }
       case "black": { this.currentPlayer = "white"; break }
     }
-    this.switchTurnCallback(tempOldCurrentPlayer)
 
-    // console.log("finished changing turn to: ", this.currentPlayer)
+    console.log("starting switch turn callback")
+    this.switchTurnCallback(tempOldCurrentPlayer)
+    console.log("finished switch turn callback")
+
 
   }
 
   finishTurn(andSwitchTurn){
+    console.log("finsihed turn, and switch turn ", andSwitchTurn )
     if(andSwitchTurn) this.switchTurn()
 
     // console.log("player as off end of turn callback: ", this.currentPlayer)
+    console.log("calling finished turn callback")
     this.turnFinishCallBack()
+    console.log("finished turnfinish callback")
     if(this.selfRoll) {
+      console.log("rolling because of self roll")
       this.rollDice()
     }
   }

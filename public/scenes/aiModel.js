@@ -111,6 +111,7 @@ export class AIModel {
       var myPossMoves = gameCopy.allPossibleMoves("black")
       gameCopy.acceptInput = true;
       console.log("my poss moves: ", myPossMoves  )
+      console.log("my dice roll is: ", gameCopy.diceRoll)
 
       if(myPossMoves.length > 0){
         var scoreForMoves = [];

@@ -269,7 +269,7 @@ export class GameScene extends Phaser.Scene{
     })
 
     this.socket.on('disconnect', function(playerId) {
-      if (playerId !== _this.socket.id){
+      if (playerId === _this.socket.id){
         _this.changeInfoText("Other player has disconnected")
         
         console.log("other player has disconnected")  
@@ -277,7 +277,7 @@ export class GameScene extends Phaser.Scene{
         _this.changeInfoText("Lost connection")
         console.log("Lost connection")
       }
-      _this.urGame.acceptInput = false;
+      // _this.urGame.acceptInput = false;
     })
   }
 
@@ -411,12 +411,23 @@ export class GameScene extends Phaser.Scene{
   letAiKnowSomethingChanged(){
 
     var _this = this
-    setTimeout(function() { 
-      if(_this.urGame.currentPlayer == "black"){
-        console.log("letting ai know something changed")
-        _this.aiModel.calculateMove(_this.urGame)
-      }
-    },2000); 
+    // setTimeout(function() { 
+
+    // var timeToAct = Date.now() + 2000
+    // var simpleIntervals = setInterval(function () {
+    //   if(Date.now()>timeToAct){
+    //     console.log("clearing intervals")
+    //     clearInterval(simpleIntervals)
+    //   }
+    //   console.log("another interval")
+    // }, 100)
+
+    console.log("maybe letting ai know somethign changed")
+    if(_this.urGame.currentPlayer == "black"){
+      console.log("letting ai know something changed")
+      _this.aiModel.calculateMove(_this.urGame)
+    }
+    // },2000); 
    
    
     
@@ -425,7 +436,7 @@ export class GameScene extends Phaser.Scene{
   AIMakesMove(movePos){
     // var _this = this
     // setTimeout(function() { 
-    //   console.log("ai has made move: ", movePos)
+      console.log("ai has made move: ", movePos)
       this.urGame.workOutMove(movePos,"black",true)
     // },1000); 
   }
