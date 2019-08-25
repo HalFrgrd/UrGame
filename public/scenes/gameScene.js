@@ -413,19 +413,35 @@ export class GameScene extends Phaser.Scene{
     var _this = this
     // setTimeout(function() { 
 
-    // var timeToAct = Date.now() + 2000
-    // var simpleIntervals = setInterval(function () {
-    //   if(Date.now()>timeToAct){
-    //     console.log("clearing intervals")
-    //     clearInterval(simpleIntervals)
-    //   }
-    //   console.log("another interval")
-    // }, 100)
+      // var simpleIntervals = setInterval(function () {
+        //   if(Date.now()>timeToAct){
+          //     console.log("clearing intervals")
+          //     clearInterval(simpleIntervals)
+          //   }
+          //   console.log("another interval")
+          // }, 100)
+          
+          
 
     console.log("maybe letting ai know somethign changed")
     if(_this.urGame.currentPlayer == "black"){
+      // var timeToAct = Date.now() + 2000
+
+
+      // console.log("start time: ", Date.now())
+      // while(Date.now() < timeToAct){
+      //   setTimeout(()=>{},100)
+      // }
+      // console.log("end time: ", Date.now())
+
+      
+
+
       console.log("letting ai know something changed")
       _this.aiModel.calculateMove(_this.urGame)
+    } else{
+      console.log("not letting ai know something changed")
+
     }
     // },2000); 
    

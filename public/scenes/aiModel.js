@@ -89,6 +89,9 @@ export class AIModel {
   calculateMove(urGame) {
     console.log("calculating ")
     if(urGame.currentPlayer == "black"){ //if i am playing
+    setTimeout( () => {
+
+
       console.log("Yanking my turn")
       var gameCopy = new GameModel(
         ()=>{},
@@ -176,6 +179,10 @@ export class AIModel {
         this.makeMoveCallback(bestMoveAndConsequence[0])
         
       }
+
+    },2000)
+
+
     }
   }
 }
