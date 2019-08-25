@@ -171,7 +171,7 @@ export class GameScene extends Phaser.Scene{
     //initialising pieces
     this.whitePieces = this.add.group();
     this.blackPieces = this.add.group();
-    for (let i = 0; i < this.starCoords.length; i++) {
+    for (let i = 0; i < 7; i++) {
       let coord = this.starCoords[i].slice();
       this.whitePieces.create(coord[0] + 4*this.gridWidth,coord[1] + 3*this.gridWidth, "white_piece");
       this.blackPieces.create(coord[0] + 4*this.gridWidth,coord[1] + 1*this.gridWidth, "black_piece");
@@ -409,24 +409,25 @@ export class GameScene extends Phaser.Scene{
   }
 
   letAiKnowSomethingChanged(){
-    console.log("letting ai know something changed")
 
     var _this = this
     setTimeout(function() { 
-      console.log("letting ai know something changed")
-      _this.aiModel.calculateMove(_this.urGame)
-    },1000); 
+      if(_this.urGame.currentPlayer == "black"){
+        console.log("letting ai know something changed")
+        _this.aiModel.calculateMove(_this.urGame)
+      }
+    },2000); 
    
    
     
   }
 
   AIMakesMove(movePos){
-    var _this = this
-    setTimeout(function() { 
-      console.log("ai has made move: ", movePos)
-      _this.urGame.workOutMove(movePos,"black",true)
-    },1000); 
+    // var _this = this
+    // setTimeout(function() { 
+    //   console.log("ai has made move: ", movePos)
+      this.urGame.workOutMove(movePos,"black",true)
+    // },1000); 
   }
 
   initaliseGameModel(){
@@ -436,6 +437,7 @@ export class GameScene extends Phaser.Scene{
           this.switchTurn.bind(this),
           ()=>{},
           this.movePiecesFromChanges.bind(this),
+          ()=>{},
           ()=>{},
           this.animateDice.bind(this),
           this.playAgainUpdate.bind(this),
@@ -456,6 +458,7 @@ export class GameScene extends Phaser.Scene{
           this.onTurnFinish.bind(this),
           this.movePiecesFromChanges.bind(this),
           this.sendMoveToServer.bind(this),
+          ()=>{},
           this.animateDice.bind(this),
           this.playAgainUpdate.bind(this),
           this.rolledZeroUpdate.bind(this),
@@ -471,9 +474,10 @@ export class GameScene extends Phaser.Scene{
       case "AIPLAY": {
         this.urGame = new GameModel(
           this.switchTurn.bind(this),
-          this.letAiKnowSomethingChanged.bind(this),
+          ()=>{},          
           this.movePiecesFromChanges.bind(this),
           ()=>{},
+          this.letAiKnowSomethingChanged.bind(this),
           this.animateDice.bind(this),
           this.playAgainUpdate.bind(this),
           this.rolledZeroUpdate.bind(this),
@@ -674,13 +678,16 @@ export class GameScene extends Phaser.Scene{
     
   }
 
-  switchTurn(duration = 300) {
-    console.log("Switching turns")
+  switchTurn(currentplayer, duration = 300) {
+
+    
     var toActivate;
     var toDisactivate
-    switch (this.urGame.currentPlayer ) {
+
+
+    switch (currentplayer ) {
       case "white": {
-        console.log("Switching from white to blakc")
+        // console.log("Switching from white to blakc")
         if(this.gameMode === "LOCALPLAY") this.changeInfoText("Black's turn")
         if(this.gameMode === "ONLINEPLAY") this.changeInfoText("Other player's turn")
         if(this.gameMode === "AIPLAY") this.changeInfoText("Computer's turn")
@@ -688,13 +695,16 @@ export class GameScene extends Phaser.Scene{
         toDisactivate = this.whiteTurnIndicators;
         break}
       case "black": {
-        console.log("Switching from black to white")
+        // console.log("Switching from black to white")
         if(this.gameMode === "LOCALPLAY") this.changeInfoText("White's turn")
         if(this.gameMode === "ONLINEPLAY") this.changeInfoText("Your turn")
         if(this.gameMode === "AIPLAY") this.changeInfoText("Your turn")
         toActivate = this.whiteTurnIndicators;
         toDisactivate = this.blackTurnIndicators;
         break}
+      default: {
+        console.log("ERROR UNMATCHED IN SWITCH TURN")
+      }
     }
 
     // console.log(this.unactivatedColor)  
