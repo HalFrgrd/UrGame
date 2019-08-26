@@ -90,6 +90,7 @@ export class GameScene extends Phaser.Scene{
   preload() {
     this.load.svg('black_piece', 'assets/black_token2.svg');
     this.load.svg('white_piece', 'assets/white_token2.svg');
+    this.load.spritesheet("buttonSmall", "assets/buttonSmall.png",{frameHeight: 32, frameWidth: 48});
     this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
     this.load.svg('rosette','assets/rosette4red.svg');
 
@@ -149,6 +150,9 @@ export class GameScene extends Phaser.Scene{
     this.add.image(this.gridWidth*5.5,this.gridWidth*2.5,'rosette').setScale(0.2);
     this.add.image(this.gridWidth*8.5,this.gridWidth*3.5,'rosette').setScale(0.2);
     this.add.image(this.gridWidth*8.5,this.gridWidth*1.5,'rosette').setScale(0.2);
+    
+    this.add.existing(new TextButton(this, 700, 30, "Menu", ()=>{this.scene.start("MENU")}, 1, "buttonSmall"))
+
   }
 
   addDiceAndPieces() {
@@ -277,8 +281,14 @@ export class GameScene extends Phaser.Scene{
         _this.changeInfoText("Lost connection")
         console.log("Lost connection")
       }
-      // _this.urGame.acceptInput = false;
+      _this.urGame.acceptInput = false;
     })
+
+    this.socket.on('reconnect', () => {
+      _this.socket.emit("requestRoomJoin", _this.roomKey)
+    })
+
+
   }
 
   mouseActionFunctions() {
@@ -559,7 +569,6 @@ export class GameScene extends Phaser.Scene{
     
 
   }
-
 
   finishGame() {
 

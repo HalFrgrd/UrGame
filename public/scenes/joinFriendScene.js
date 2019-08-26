@@ -27,7 +27,7 @@ export class JoinFriendScene extends Phaser.Scene{
       if(self.inputText !== undefined){ 
         console.log(self.inputText.value)
         
-        self.socket.emit("joinFriendRequest", self.inputText.value, function (response) {
+        self.socket.emit("joinFriendRequest", self.inputText.value.toLowerCase(), function (response) {
           console.log("server responded")
           // response is: [friend available or not, room to play in]
           if (response[0] === "friendAvailable"){

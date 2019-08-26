@@ -11,6 +11,7 @@ export class MenuScene extends Phaser.Scene{
   }
   preload() {
     this.load.spritesheet("button", "assets/button.png",{frameHeight: 48, frameWidth: 192});
+    this.load.image("blurredBackground", "assets/gameBackgroundBlurred.png")
     // this.cameras.main.setBackgroundColor('#000000');
   }
   create(){
@@ -18,6 +19,8 @@ export class MenuScene extends Phaser.Scene{
 
 
     this.add.text(400, 100,  "Royal Game of Ur", { fontSize: '70px', fill: '#000', align: 'right', fontFamily: 'Helvetica', fontStyle: 'bold' }).setOrigin(0.5)
+
+    // this.backgroundImage = this.add.image(400,278,"blurredBackground").setDepth(-1)
 
     
     let menuStructure = [
@@ -44,6 +47,7 @@ export class MenuScene extends Phaser.Scene{
 
   }
 
+
   
 }
 
@@ -58,7 +62,8 @@ class MenuBuilder {
             console.log(iInside)
             bInside[1](); //do our custom function
             selfInside.buttons.toggleVisible()
-            if(bInside[2].length > 0 ) { new MenuBuilder(_this, bInside[2], selfInside.buttons) }
+            if(bInside[2].length > 0 ) { new MenuBuilder(_this, bInside[2], selfInside.buttons) } 
+            // else {_this.backgroundImage.setVisible(false)}
           }
         )))
       }(i,butt, self)
@@ -66,11 +71,10 @@ class MenuBuilder {
 
     if(parentGroup !== null){
       if(i === undefined) var i = -1 
-      this.buttons.add(_this.add.existing(new TextButton(_this, 400, 300 + (i+1)*60, "Back ↩", ()=>{
+      this.buttons.add(_this.add.existing(new TextButton(_this, 400, 300 + (i+1)*60, "Back ⇐", ()=>{
         this.buttons.toggleVisible()
         parentGroup.toggleVisible()
       })))
     }
   }
-
 }

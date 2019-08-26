@@ -10,7 +10,9 @@ export class DiceRollScene extends Phaser.Scene{
 
   }
   preload() {
-    this.load.spritesheet('dice','../assets/dice.png', {frameWidth: 100, frameHeight: 100});    
+    this.load.spritesheet('dice','../assets/dice.png', {frameWidth: 100, frameHeight: 100});
+    this.load.spritesheet("buttonSmall", "assets/buttonSmall.png",{frameHeight: 32, frameWidth: 48});
+
   }
   create(){
     console.log("here")
@@ -25,12 +27,12 @@ export class DiceRollScene extends Phaser.Scene{
     this.dice.create(xDicePos+ xDiceStep*3,yDicePos,'dice').setScale(diceScale);
 
     this.previousRollsText = this.add.group();
-    for (let i = 0; i <5; i++){
-      this.previousRollsText.add( this.add.text(400-20*i,400,"0", {fontSize: '20px', fill: '#666666'}) )
-    }
+    // for (let i = 0; i <5; i++){
+    //   this.previousRollsText.add( this.add.text(400-20*i,400,"0", {fontSize: '20px', fill: '#666666'}) )
+    // }
     
 
-    this.pastRolls = [0,0,0,0,0,0,0,0,0]
+    this.pastRolls = []
     
     let _this = this
 
@@ -39,18 +41,28 @@ export class DiceRollScene extends Phaser.Scene{
       _this.rollDice(_this)
     })
 
-    this.add.existing(new TextButton(this, xDicePos+200, yDicePos+80, "Roll dice (or press space)", 
+    var rollButton = new TextButton(this, xDicePos+180, yDicePos+150, "Roll dice (or press space)", 
       ()=>{
         console.log("rolling")
         _this.rollDice(_this)
       },
       2
-    ))
+    )
+
+    this.add.existing(rollButton)
+
+
+    this.add.existing(new TextButton(this, 730, 100, "Menu", ()=>{this.scene.start("MENU")}, 1, "buttonSmall"))
+
+    var newText = this.add.text(160,320,"Previous rolls: ", {fontSize: '32px', fill: '#666666'}) 
+
+
+    this.allowRolling = true
     
 
   }
 
-  animateDice(_this, diceValues) {
+  animateDice(diceValues) {
     let diceTimeline = this.tweens.createTimeline();
     const diceRollTime = 200;
     let i = 0
@@ -69,25 +81,60 @@ export class DiceRollScene extends Phaser.Scene{
     diceTimeline.play()
   }
 
-  updatePastDice(_this) {
-    pastRolls.slice(-5)
-    for (let i = 0; i < 5; i++) {
-      const element = pastRolls[i];
-      
+  updatePastDice() {
+    
+    this.tweens.add({
+      targets: this.previousRollsText.getChildren(),
+      x: '+=30',
+      duration: 200,  
+    })
+
+    
+
+    var newText = this.add.text(460,320,this.diceRoll, {fontSize: '32px', fill: '#666666'}) 
+    newText.setAlpha(0)
+
+    this.previousRollsText.add(newText)
+
+    var _this =this
+
+    this.tweens.add({
+      targets: newText,
+      alpha: 1,
+      duration: 200,
+      offset: 100,
+      onComplete: ()=>{
+        _this.allowRolling = true
+      }
+    })
+
+    if(this.previousRollsText.getChildren().length > 5){
+      this.previousRollsText.getChildren()[0].destroy()
+      this.pastRolls.shift()
     }
+
   }
 
-  rollDice(_this) { //only run for local plays
-    var diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
- 
-    this.diceRoll = diceValues.reduce((a,b) => a+b,0);
-    // this.updatePastDice(_this)
-  
-    this.animateDice(_this,diceValues)
+  rollDice() { //only run for local plays
+    if(this.allowRolling){
+      this.allowRolling = false
+
+      var diceValues = [ Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),Phaser.Math.Between(0,1),];
+   
+      this.diceRoll = diceValues.reduce((a,b) => a+b,0);
+      // this.updatePastDice(_this)
     
-    console.log("dice roll: ", this.diceRoll)
+      this.animateDice(diceValues)
+      
+      console.log("dice roll: ", this.diceRoll)
+    
+      this.pastRolls.push(this.diceRoll)
   
+      console.log("past rolls", this.pastRolls)
   
+      this.updatePastDice()
+    }
+
 
   }
 
