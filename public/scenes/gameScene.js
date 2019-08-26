@@ -285,7 +285,9 @@ export class GameScene extends Phaser.Scene{
     })
 
     this.socket.on('reconnect', () => {
-      _this.socket.emit("requestRoomJoin", _this.roomKey)
+      console.log("reconnected")
+
+      // _this.socket.emit("requestRoomJoin", _this.roomKey)
     })
 
 
