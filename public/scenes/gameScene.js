@@ -317,23 +317,27 @@ export class GameScene extends Phaser.Scene{
       _this.sys.canvas.style.cursor = "initial"
     })
 
-    this.hoveringOnPiece = -1
-    this.input.on('pointermove', function (pointer){
-      let newHoveringOnPiece = _this.mouseXYtoBoardPos(pointer.x,pointer.y);
-      if(newHoveringOnPiece != this.hoveringOnPiece){ //only when pointer moves onto a new area (new square, or off board)
-        _this.sys.canvas.style.cursor = "initial"
+    if(!IS_TOUCH){
+      this.hoveringOnPiece = -1
+      this.input.on('pointermove', function (pointer){
+        let newHoveringOnPiece = _this.mouseXYtoBoardPos(pointer.x,pointer.y);
+        if(newHoveringOnPiece != this.hoveringOnPiece){ //only when pointer moves onto a new area (new square, or off board)
+          _this.sys.canvas.style.cursor = "initial"
+          
+          _this.ghostPieceWhite.setAlpha(0);
+          _this.ghostPieceBlack.setAlpha(0);
+          _this.hoveringOnPiece = newHoveringOnPiece
+          
+          
+          // console.log("who played mouse: ", whoPlayed)
+          let boardPos = _this.mouseXYtoBoardPos(pointer.x, pointer.y)
+          
+          _this.urGame.workOutMove( boardPos , whoPlayed(), false )  
+        }
+      })
+    }
 
-        _this.ghostPieceWhite.setAlpha(0);
-        _this.ghostPieceBlack.setAlpha(0);
-        _this.hoveringOnPiece = newHoveringOnPiece
 
-        
-        // console.log("who played mouse: ", whoPlayed)
-        let boardPos = _this.mouseXYtoBoardPos(pointer.x, pointer.y)
-
-        _this.urGame.workOutMove( boardPos , whoPlayed(), false )  
-      }
-    })
   }
 
   movePiecesFromChanges(changes) {
@@ -539,6 +543,7 @@ export class GameScene extends Phaser.Scene{
     //Add graphics and sprites
     this.drawGraphics()
     this.addDiceAndPieces()
+    
 
     //set up for server communication and game starting
     if(this.gameMode === "ONLINEPLAY" ){

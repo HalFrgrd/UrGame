@@ -5,6 +5,8 @@ import {JoinRandomScene} from "/scenes/joinRandomScene.js";
 import { CreateGameScene } from "./scenes/createGame.js";
 import { DiceRollScene } from "./scenes/diceRollScene.js";
 
+
+
 let game = new Phaser.Game({
   width: 800,
   height: 600,

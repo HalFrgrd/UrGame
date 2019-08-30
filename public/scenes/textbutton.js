@@ -11,9 +11,9 @@ export class TextButton extends Phaser.GameObjects.Container {
     this.add(text)
 
     this.button.setInteractive({ useHandCursor: true })
-      .on('pointerover', () => this.enterButtonHoverState() )
+      .on('pointerover', () => (IS_TOUCH) ? ()=>{} : this.enterButtonHoverState() )
       .on('pointerout', () => this.enterButtonRestState() )
-      .on('pointerdown', () => this.enterButtonActiveState() )
+      .on('pointerdown', () =>  this.enterButtonActiveState() )
       .on('pointerup', () => {
         this.enterButtonHoverState();
         callback();

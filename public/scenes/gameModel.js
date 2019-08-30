@@ -113,8 +113,15 @@ export class GameModel{
       }, 3000); 
 
     }else {
-      console.log("should play, letting ai look: ", this.currentPlayer)
-      this.letAiLookCallback()
+      var _this = this
+
+      setTimeout(()=>{
+        console.log("should play, letting ai look: ", _this.currentPlayer)
+        _this.letAiLookCallback()
+      }, (IS_TOUCH)? 200: 0)
+
+
+      
       
     }
 

@@ -5,6 +5,14 @@
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"> -->
     <title>Royal Game of Ur</title>
     <link rel="icon" href="/assets/rosette4red.png">
+    <script>
+      // Check touch input
+      var IS_TOUCH	= false;
+      window.addEventListener('touchstart', function()
+      {			
+        IS_TOUCH	= true;
+      });
+    </script>
     <script src="//cdn.jsdelivr.net/npm/phaser@3.17.0/dist/phaser.min.js"></script>
     <script src="/rexroundrectangleplugin.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -32,10 +40,8 @@
     </style>
 </head>
 <body>
-  <!-- <div class="fontLoader" style="font-family: Open Sans;">-</div> -->
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="game"></div>
-  <!-- <input type="text" id="createGameText"/> -->
   <script type="module" src="main.js"></script>
 
 </body>

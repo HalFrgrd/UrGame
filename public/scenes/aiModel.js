@@ -180,7 +180,7 @@ export class AIModel {
         
       }
 
-    },2000)
+    },1500)
 
 
     }
