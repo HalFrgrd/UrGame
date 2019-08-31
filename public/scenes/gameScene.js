@@ -2,6 +2,108 @@ import {TextButton} from "./textbutton.js";
 import {GameModel} from "./gameModel.js"
 import {AIModel} from "./aiModel.js"
 
+
+
+
+export class DrawGraphics {
+
+  getColor(colString) {
+    let fillColor1 = Phaser.Display.Color.HexStringToColor(colString);
+    return Phaser.Display.Color.GetColor(fillColor1.r, fillColor1.g, fillColor1.b)
+  }
+
+  constructor(_this) {
+    _this.lines = [
+      new Phaser.Geom.Line(_this.gridWidth*1, _this.gridWidth*2, _this.gridWidth*9, _this.gridWidth*2),
+      new Phaser.Geom.Line(_this.gridWidth*1, _this.gridWidth*3, _this.gridWidth*9, _this.gridWidth*3),
+      new Phaser.Geom.Line(_this.gridWidth*2, _this.gridWidth*1, _this.gridWidth*2, _this.gridWidth*4),
+      new Phaser.Geom.Line(_this.gridWidth*2, _this.gridWidth*1, _this.gridWidth*2, _this.gridWidth*4),
+      new Phaser.Geom.Line(_this.gridWidth*4, _this.gridWidth*2, _this.gridWidth*4, _this.gridWidth*3),
+      new Phaser.Geom.Line(_this.gridWidth*6, _this.gridWidth*1, _this.gridWidth*6, _this.gridWidth*4),
+      new Phaser.Geom.Line(_this.gridWidth*7, _this.gridWidth*1, _this.gridWidth*7, _this.gridWidth*4),
+      new Phaser.Geom.Line(_this.gridWidth*8, _this.gridWidth*1, _this.gridWidth*8, _this.gridWidth*4),
+    ]
+
+    _this.graphics = _this.add.graphics({ lineStyle: { width: 7, color: 0xBBADA0 }, fillStyle: {color: 0xe0d2c5} });
+    _this.blackTurnIndicators = _this.add.group()
+    _this.whiteTurnIndicators = _this.add.group()
+
+    
+    _this.blackTurnIndicators.add(_this.add.rexRoundRectangle(_this.gridWidth*5,_this.gridWidth*2,_this.gridWidth*2,_this.gridWidth*2,16,this.getColor(_this.activatedColor)).setDepth(-1).setAlpha(_this.unactiveAlpha));
+    _this.blackTurnIndicators.add(_this.add.rexRoundRectangle(_this.gridWidth*3,_this.gridWidth*2,_this.gridWidth*2,_this.gridWidth*2,16,this.getColor(_this.activatedColor)).setDepth(-1).setAlpha(_this.unactiveAlpha));
+
+    _this.whiteTurnIndicators.add(_this.add.rexRoundRectangle(_this.gridWidth*3,_this.gridWidth*3,_this.gridWidth*2,_this.gridWidth*2,16,this.getColor(_this.activatedColor)).setDepth(-1));
+    _this.whiteTurnIndicators.add(_this.add.rexRoundRectangle(_this.gridWidth*5,_this.gridWidth*3,_this.gridWidth*2,_this.gridWidth*2,16,this.getColor(_this.activatedColor)).setDepth(-1));
+
+    _this.graphics.fillStyle( 0xCDC0B4, 1);
+    _this.graphics.fillRoundedRect(_this.gridWidth*1, _this.gridWidth*1, _this.gridWidth*2, _this.gridWidth*3, 8);
+    _this.graphics.fillRoundedRect(_this.gridWidth*5, _this.gridWidth*1, _this.gridWidth*4, _this.gridWidth*3, 8);
+    _this.graphics.fillRect(_this.gridWidth*3,_this.gridWidth*2,_this.gridWidth*2,_this.gridWidth);
+    _this.graphics.fillStyle(0xBBADA0);
+
+    _this.graphics.strokeRoundedRect(_this.gridWidth*1, _this.gridWidth*1, _this.gridWidth*2, _this.gridWidth*3, 8);
+    _this.graphics.strokeRoundedRect(_this.gridWidth*5, _this.gridWidth*1, _this.gridWidth*4, _this.gridWidth*3, 8);
+    // graphics.fillRect(48*3,_this.gridWidth*2,48*2,_this.gridWidth*1);
+
+    for (let i = 0; i < _this.lines.length; i++) {
+      let line = _this.lines[i];
+      _this.graphics.strokeLineShape(line);
+    }
+    // graphics.strokeCircle(_this.gridWidth*2.5, _this.gridWidth*1.5, _this.gridWidth/2.5)
+
+    //infor rectangles
+    _this.graphics.lineStyle(1, 0xC2C2C2)
+    _this.graphics.strokeRoundedRect(_this.gridWidth*1,15,_this.gridWidth*8,32,4)
+    _this.graphics.strokeRoundedRect(_this.gridWidth*9+8,15,_this.gridWidth*2-8,32,4)
+    _this.infoText = _this.add.text(_this.gridWidth*1+6+3,15+6,"", {fontSize: '20px', fill: '#666666',fontFamily: "Courier"})
+    _this.diceText = _this.add.text(_this.gridWidth*10-3,15+6,"", {fontSize: '20px', fill: '#666666', fontFamily: "Courier"})
+
+    _this.add.image(_this.gridWidth*2.5,_this.gridWidth*1.5,'rosette').setScale(0.2);
+    _this.add.image(_this.gridWidth*2.5,_this.gridWidth*3.5,'rosette').setScale(0.2);
+    _this.add.image(_this.gridWidth*5.5,_this.gridWidth*2.5,'rosette').setScale(0.2);
+    _this.add.image(_this.gridWidth*8.5,_this.gridWidth*3.5,'rosette').setScale(0.2);
+    _this.add.image(_this.gridWidth*8.5,_this.gridWidth*1.5,'rosette').setScale(0.2);
+    
+    _this.add.existing(new TextButton(_this, 700, 30, "Menu", ()=>{_this.scene.start("MENU")}, 1, "buttonSmall"))
+  }
+}
+
+export class AddPiecesAndDice {
+  constructor (_this, starCoords) {
+    //initialising dice
+    _this.dice = _this.add.group();
+    let xDicePos = _this.gridWidth*9.6
+    let yDicePos = _this.gridWidth*1.8
+    let yDiceStep = _this.gridWidth*1.4
+    let xDiceStep = _this.gridWidth*1
+    _this.dice.create(xDicePos,yDicePos + yDiceStep*0,'dice').setScale(0.4);
+    _this.dice.create(xDicePos,yDicePos + yDiceStep*1,'dice').setScale(0.4);
+    _this.dice.create(xDicePos+xDiceStep,yDicePos + yDiceStep*0,'dice').setScale(0.4);
+    _this.dice.create(xDicePos+xDiceStep,yDicePos + yDiceStep*1,'dice').setScale(0.4);
+
+    _this.pieceScaleOnBoard = 0.15
+    _this.pieceScaleOffBoard = 0.05
+
+
+    //initialising pieces
+    _this.whitePieces = _this.add.group();
+    _this.blackPieces = _this.add.group();
+    for (let i = 0; i < 7; i++) {
+      let coord = starCoords[i].slice();
+      _this.whitePieces.create(coord[0] + 4*_this.gridWidth,coord[1] + 3*_this.gridWidth, "white_piece");
+      _this.blackPieces.create(coord[0] + 4*_this.gridWidth,coord[1] + 1*_this.gridWidth, "black_piece");
+    }
+
+    _this.whitePieces.getChildren().forEach( s => s.setScale(_this.pieceScaleOffBoard))
+    _this.blackPieces.getChildren().forEach( s => s.setScale(_this.pieceScaleOffBoard))
+
+
+    //used when hovering mouse over
+    _this.ghostPieceWhite = _this.add.image(0,0,"white_piece").setAlpha(0);
+    _this.ghostPieceBlack = _this.add.image(0,0,"black_piece").setAlpha(0);
+  }
+}
+
 export class GameScene extends Phaser.Scene{
   constructor() {
     super({
@@ -18,6 +120,10 @@ export class GameScene extends Phaser.Scene{
       case "AIPLAY": {
         this.gameMode = gameMode; 
         this.aiModel;
+        break;
+      }
+      case "TUTORIAL": {
+        this.gameMode = gameMode;
         break;
       }
       default: {
@@ -54,7 +160,6 @@ export class GameScene extends Phaser.Scene{
     this.starCoords[6] = [0,0]
     this.starCoords = this.starCoords.map( c =>  [c[0] + this.gridWidth/2, c[1] + this.gridWidth/2]);
 
-    console.log(this.starCoords)
 
 
     this.diceRoll;
@@ -88,6 +193,8 @@ export class GameScene extends Phaser.Scene{
 
   }
   preload() {
+    this.load.svg('tutorial','assets/gameBackgroundTutorial.svg');
+
     this.load.svg('black_piece', 'assets/black_token2.svg');
     this.load.svg('white_piece', 'assets/white_token2.svg');
     this.load.spritesheet("buttonSmall", "assets/buttonSmall.png",{frameHeight: 32, frameWidth: 48});
@@ -97,98 +204,13 @@ export class GameScene extends Phaser.Scene{
     this.load.plugin('rexroundrectangleplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/plugins/dist/rexroundrectangleplugin.min.js', true);      
     
   }
-  
 
   drawGraphics() {
-    this.lines = [
-      new Phaser.Geom.Line(this.gridWidth*1, this.gridWidth*2, this.gridWidth*9, this.gridWidth*2),
-      new Phaser.Geom.Line(this.gridWidth*1, this.gridWidth*3, this.gridWidth*9, this.gridWidth*3),
-      new Phaser.Geom.Line(this.gridWidth*2, this.gridWidth*1, this.gridWidth*2, this.gridWidth*4),
-      new Phaser.Geom.Line(this.gridWidth*2, this.gridWidth*1, this.gridWidth*2, this.gridWidth*4),
-      new Phaser.Geom.Line(this.gridWidth*4, this.gridWidth*2, this.gridWidth*4, this.gridWidth*3),
-      new Phaser.Geom.Line(this.gridWidth*6, this.gridWidth*1, this.gridWidth*6, this.gridWidth*4),
-      new Phaser.Geom.Line(this.gridWidth*7, this.gridWidth*1, this.gridWidth*7, this.gridWidth*4),
-      new Phaser.Geom.Line(this.gridWidth*8, this.gridWidth*1, this.gridWidth*8, this.gridWidth*4),
-    ]
-
-    this.graphics = this.add.graphics({ lineStyle: { width: 7, color: 0xBBADA0 }, fillStyle: {color: 0xe0d2c5} });
-    this.blackTurnIndicators = this.add.group()
-    this.whiteTurnIndicators = this.add.group()
-
-    
-    this.blackTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*5,this.gridWidth*2,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1).setAlpha(this.unactiveAlpha));
-    this.blackTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1).setAlpha(this.unactiveAlpha));
-
-    this.whiteTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*3,this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1));
-    this.whiteTurnIndicators.add(this.add.rexRoundRectangle(this.gridWidth*5,this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,16,this.getColor(this.activatedColor)).setDepth(-1));
-
-    this.graphics.fillStyle( 0xCDC0B4, 1);
-    this.graphics.fillRoundedRect(this.gridWidth*1, this.gridWidth*1, this.gridWidth*2, this.gridWidth*3, 8);
-    this.graphics.fillRoundedRect(this.gridWidth*5, this.gridWidth*1, this.gridWidth*4, this.gridWidth*3, 8);
-    this.graphics.fillRect(this.gridWidth*3,this.gridWidth*2,this.gridWidth*2,this.gridWidth);
-    this.graphics.fillStyle(0xBBADA0);
-
-    this.graphics.strokeRoundedRect(this.gridWidth*1, this.gridWidth*1, this.gridWidth*2, this.gridWidth*3, 8);
-    this.graphics.strokeRoundedRect(this.gridWidth*5, this.gridWidth*1, this.gridWidth*4, this.gridWidth*3, 8);
-    // graphics.fillRect(48*3,this.gridWidth*2,48*2,this.gridWidth*1);
-
-    for (let i = 0; i < this.lines.length; i++) {
-      let line = this.lines[i];
-      this.graphics.strokeLineShape(line);
-    }
-    // graphics.strokeCircle(this.gridWidth*2.5, this.gridWidth*1.5, this.gridWidth/2.5)
-
-    //infor rectangles
-    this.graphics.lineStyle(1, 0xC2C2C2)
-    this.graphics.strokeRoundedRect(this.gridWidth*1,15,this.gridWidth*8,32,4)
-    this.graphics.strokeRoundedRect(this.gridWidth*9+8,15,this.gridWidth*2-8,32,4)
-    this.infoText = this.add.text(this.gridWidth*1+6+3,15+6,"", {fontSize: '20px', fill: '#666666',fontFamily: "Courier"})
-    this.diceText = this.add.text(this.gridWidth*10-3,15+6,"", {fontSize: '20px', fill: '#666666', fontFamily: "Courier"})
-
-    this.add.image(this.gridWidth*2.5,this.gridWidth*1.5,'rosette').setScale(0.2);
-    this.add.image(this.gridWidth*2.5,this.gridWidth*3.5,'rosette').setScale(0.2);
-    this.add.image(this.gridWidth*5.5,this.gridWidth*2.5,'rosette').setScale(0.2);
-    this.add.image(this.gridWidth*8.5,this.gridWidth*3.5,'rosette').setScale(0.2);
-    this.add.image(this.gridWidth*8.5,this.gridWidth*1.5,'rosette').setScale(0.2);
-    
-    this.add.existing(new TextButton(this, 700, 30, "Menu", ()=>{this.scene.start("MENU")}, 1, "buttonSmall"))
-
+    new DrawGraphics(this)
   }
 
   addDiceAndPieces() {
-
-    //initialising dice
-    this.dice = this.add.group();
-    let xDicePos = this.gridWidth*9.6
-    let yDicePos = this.gridWidth*1.8
-    let yDiceStep = this.gridWidth*1.4
-    let xDiceStep = this.gridWidth*1
-    this.dice.create(xDicePos,yDicePos + yDiceStep*0,'dice').setScale(0.4);
-    this.dice.create(xDicePos,yDicePos + yDiceStep*1,'dice').setScale(0.4);
-    this.dice.create(xDicePos+xDiceStep,yDicePos + yDiceStep*0,'dice').setScale(0.4);
-    this.dice.create(xDicePos+xDiceStep,yDicePos + yDiceStep*1,'dice').setScale(0.4);
-
-    this.pieceScaleOnBoard = 0.15
-    this.pieceScaleOffBoard = 0.05
-
-
-    //initialising pieces
-    this.whitePieces = this.add.group();
-    this.blackPieces = this.add.group();
-    for (let i = 0; i < 7; i++) {
-      let coord = this.starCoords[i].slice();
-      this.whitePieces.create(coord[0] + 4*this.gridWidth,coord[1] + 3*this.gridWidth, "white_piece");
-      this.blackPieces.create(coord[0] + 4*this.gridWidth,coord[1] + 1*this.gridWidth, "black_piece");
-    }
-
-    this.whitePieces.getChildren().forEach( s => s.setScale(this.pieceScaleOffBoard))
-    this.blackPieces.getChildren().forEach( s => s.setScale(this.pieceScaleOffBoard))
-
-
-    //used when hovering mouse over
-    this.ghostPieceWhite = this.add.image(0,0,"white_piece").setAlpha(0);
-    this.ghostPieceBlack = this.add.image(0,0,"black_piece").setAlpha(0);
-    
+    new AddPiecesAndDice(this, this.starCoords)
   }
 
   changeInfoText(newText, duration = 300) {
@@ -572,6 +594,10 @@ export class GameScene extends Phaser.Scene{
       this.mouseActionFunctions();
     }
 
+    if(this.gameMode === "TUTORIAL"){
+      // 
+    }
+
   
     
 
@@ -775,10 +801,7 @@ export class GameScene extends Phaser.Scene{
 
   }
 
-  getColor(colString) {
-    let fillColor1 = Phaser.Display.Color.HexStringToColor(colString);
-    return Phaser.Display.Color.GetColor(fillColor1.r, fillColor1.g, fillColor1.b)
-  }
+  
 
   tweenColor(shapeToTween, startColor, endColor, duration) {
 

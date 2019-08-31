@@ -36,9 +36,9 @@ export class MenuScene extends Phaser.Scene{
           ["Join a random game", ()=>{this.scene.launch("JOINRANDOM")},[]],
         ]]
       ]],
-      ["How to play", ()=>{},[
-        ["Coming soon", ()=>{},[]],
-        ["Meanshiwle google it!", ()=>{},[]]
+      ["How to play", ()=>{this.scene.launch("TUTORIAL")},[
+        // ["Coming soon", ()=>{},[]],
+        // ["Meanshiwle google it!", ()=>{},[]]
       ]],
       ["Dice throwing", ()=>{this.scene.launch("DICEROLL")},[]],
     ]
