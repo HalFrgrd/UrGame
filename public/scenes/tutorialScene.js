@@ -43,6 +43,9 @@ export class TutorialScene extends Phaser.Scene{
     this.add.text(110,170,"Look here for information as you play.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
     this.add.text(600,190,"Look here \n\nfor the \n\ndice values.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
 
+    this.add.existing(new TextButton(this, 630, 470, "Menu", ()=>{this.scene.start("MENU")}, 1, "buttonSmall"))
+
+
     var textIndex = 0    
     
     
