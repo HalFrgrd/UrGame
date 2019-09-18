@@ -37,23 +37,23 @@ export class TutorialScene extends Phaser.Scene{
     // this.add.text(textX,textY+textYStep*1,"The sum of the dice is how far to move your piece.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
     // this.add.text(textX,textY+textYStep*2,"Land on your oppositions pieces to send them home.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
     // this.add.text(textX,textY+textYStep*3,"Land on rosettes to have another turn.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
-    // this.add.text(textX,textY+textYStep*4,"Win by getting all your pieces off the board.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
+    // this.add.text(textX,textY+textYStep*4,"Win by getting all your pieces off the board.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"}) 
 
 
     this.add.text(110,170,"Look here for information as you play.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
-    this.add.text(600,190,"Look here \n\nfor the \n\ndice values.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
+    this.add.text(600,200,"Look here \n\nfor the \n\ndice values.",  {fontSize: '20px', fill: '#000000',fontFamily: "Courier"})
 
-    this.add.existing(new TextButton(this, 630, 470, "Menu", ()=>{this.scene.start("MENU")}, 1, "buttonSmall"))
+    this.add.existing(new TextButton(this, 630, 480, "Menu", ()=>{this.scene.start("MENU")}, 1, "buttonSmall"))
 
 
     var textIndex = 0    
     
     
     var textToShow = [
-      "Move your pieces along the shown route.",  
-      "The sum of the dice is how far to move your piece.",
-      "Land on your oppositions pieces to send them home.", 
-      "Land on rosettes to have another turn.", 
+      "Take it in turns to move your pieces along the\nshown route.",  
+      "The sum of the dice is how far you can move \none of your pieces.",
+      "Land on your opponent's pieces to send them \nback to the start", 
+      "Land on a rosette to have another turn. Also \nthe opponent can't remove you from the rosettes.", 
       "Win by getting all your pieces off the board.",
      
     ]
@@ -66,12 +66,12 @@ export class TutorialScene extends Phaser.Scene{
       textIndex = newIndex
     }
 
-    this.add.existing(new TextButton(this, 300, 470 , "⇦  Previous Step", ()=>{
+    this.add.existing(new TextButton(this, 300, 480 , "⇦  Previous Step", ()=>{
       if(textIndex>0){
         setText(textIndex-1)
       }
     }) )
-    this.add.existing(new TextButton(this, 500, 470 , "Next Step  ⇨", ()=>{
+    this.add.existing(new TextButton(this, 500, 480 , "Next Step  ⇨", ()=>{
       if(textIndex<textToShow.length-1){
         setText(textIndex+1)
       }
