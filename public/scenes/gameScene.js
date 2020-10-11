@@ -201,7 +201,7 @@ export class GameScene extends Phaser.Scene{
     this.load.spritesheet('dice','assets/dice.png', {frameWidth: 100, frameHeight: 100});
     this.load.svg('rosette','assets/rosette4red.svg');
 
-    this.load.plugin('rexroundrectangleplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/plugins/dist/rexroundrectangleplugin.min.js', true);      
+    this.load.plugin('rexroundrectangleplugin', 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexroundrectangleplugin.min.js', true);      
     
   }
 
